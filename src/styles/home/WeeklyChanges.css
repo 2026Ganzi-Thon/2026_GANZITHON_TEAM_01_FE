@@ -1,0 +1,130 @@
+.weekly-changes {
+  display: grid;
+  gap: clamp(12px, calc(16 * var(--art-unit)), 18px);
+  width: min(calc(100% - 32px), 380px);
+  margin-inline: auto;
+  padding-block: max(calc(74 * var(--art-unit)), calc(env(safe-area-inset-top) + 12px)) 8px;
+  color: #000;
+  font-family: Pretendard, system-ui, sans-serif;
+}
+
+.weekly-changes h1,
+.weekly-changes h2,
+.weekly-changes p {
+  margin: 0;
+}
+
+.weekly-changes h1 {
+  margin-inline: 12px;
+  padding-bottom: calc(19 * var(--art-unit));
+  border-bottom: 1px solid #edd6d0;
+  font-size: 20px;
+  text-align: center;
+}
+
+.weekly-changes__summary {
+  display: grid;
+  grid-template-columns: minmax(0, 165px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(8px, 5cqw, 24px);
+}
+
+.weekly-changes__summary img {
+  display: block;
+  width: min(100%, clamp(96px, calc(165 * var(--art-unit)), 165px));
+  height: auto;
+  aspect-ratio: 33 / 38;
+  object-fit: contain;
+  justify-self: center;
+}
+
+.weekly-changes__summary p {
+  font-size: 13px;
+}
+
+.weekly-changes__summary .weekly-changes__weight {
+  margin-bottom: 8px;
+  color: #9f8170;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.weekly-changes__summary h2 {
+  color: hsl(21.7021deg 19.6653% 30%);
+  font-size: 20px;
+}
+
+.weekly-changes__fatigue {
+  display: flex;
+  flex-direction: column;
+  min-height: 170px;
+  padding: 20px 18px 12px;
+  border: 1px solid #d3ab9e;
+  border-radius: 26px;
+}
+
+.weekly-changes__average {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.weekly-changes__fatigue h2 {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.weekly-changes__chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: clamp(4px, 2cqw, 9px);
+  flex: 1;
+}
+
+.weekly-changes__day {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.weekly-changes__bar {
+  border-radius: 10px 10px 0 0;
+  background: #eac9c1;
+}
+
+.weekly-changes__bar[data-highlighted] {
+  background: #d3ab9e;
+}
+
+.weekly-changes__routine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 25px 18px;
+  border: 0;
+  border-radius: 19px;
+  background: #eac9c1;
+  color: #000;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.weekly-changes__routine > span {
+  display: grid;
+  gap: 6px;
+  color: hsl(0deg 0% 30.6678%);
+  font-size: 13px;
+}
+
+.weekly-changes__routine strong {
+  color: hsl(0deg 0% 22.8046%);
+  font-size: 18px;
+}
+
+.weekly-changes__routine svg {
+  flex: none;
+}
