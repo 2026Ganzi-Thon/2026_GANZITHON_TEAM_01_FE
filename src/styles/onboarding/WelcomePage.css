@@ -10,7 +10,19 @@
 }
 
 .welcome__brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font: 700 20px/28px Pretendard, system-ui, sans-serif;
+}
+
+.welcome__login {
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 500 15px/22px Pretendard, system-ui, sans-serif;
+  cursor: pointer;
 }
 
 .welcome__intro {

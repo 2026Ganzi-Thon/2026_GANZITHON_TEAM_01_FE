@@ -1,0 +1,69 @@
+.login {
+  height: 100%;
+  overflow-y: auto;
+  padding: max(104px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+  background: #fdf9fc;
+  font-family: Pretendard, system-ui, sans-serif;
+  text-align: center;
+}
+
+.login h1 {
+  margin: 0 0 48px;
+  color: hsl(21.7021deg 0% 13.0108%);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 35px;
+}
+
+.login__fields {
+  display: grid;
+  gap: 8px;
+  width: min(318px, 100%);
+  margin-inline: auto;
+}
+
+.login__fields input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 30px;
+  border: 1px solid hsl(21.7021deg 0% 83.3984%);
+  border-radius: 20px;
+  background: #fff;
+  color: hsl(21.7021deg 0% 13.0108%);
+  font: 500 15px/35px Pretendard, system-ui, sans-serif;
+}
+
+.login__fields input::placeholder {
+  color: hsl(0deg 0% 41.7781%);
+  opacity: 1;
+}
+
+.login__submit {
+  min-height: 50px;
+  margin-top: 51px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.login__recovery {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 20px;
+}
+
+.login__recovery button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: hsl(0deg 0% 36.4201%);
+  font: 500 12px/29.5px Pretendard, system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.login__notice {
+  margin: 12px 0 0;
+  color: hsl(0deg 0% 36.4201%);
+  font-size: 13px;
+}
