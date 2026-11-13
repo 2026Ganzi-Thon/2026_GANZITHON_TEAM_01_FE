@@ -1,0 +1,197 @@
+.check-in,
+.check-in-complete {
+  --check-in-brown: #9f8170;
+  --check-in-pink: #eac9c1;
+  font-family: Pretendard, system-ui, sans-serif;
+  text-align: center;
+}
+
+.check-in {
+  width: min(100% - 48px, 342px);
+  margin-inline: auto;
+  padding-block: max(calc(74 * var(--art-unit)), calc(env(safe-area-inset-top) + 12px)) 6px;
+}
+
+.check-in button,
+.check-in-complete button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.check-in__title {
+  margin: 0;
+  color: #000;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.check-in__progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 330px;
+  margin: calc(22 * var(--art-unit)) auto 0;
+}
+
+.check-in__progress span {
+  height: 6px;
+  border-radius: 22px;
+  background: var(--check-in-pink);
+}
+
+.check-in__progress [data-current] {
+  background: var(--check-in-brown);
+}
+
+.check-in__sheep {
+  display: block;
+  width: clamp(57px, calc(113 * var(--art-unit)), 113px);
+  height: clamp(74px, calc(146 * var(--art-unit)), 146px);
+  aspect-ratio: 113 / 146;
+  object-fit: contain;
+  margin: calc(29 * var(--art-unit)) auto calc(25 * var(--art-unit));
+}
+
+.check-in__question {
+  margin: 0;
+  color: var(--check-in-brown);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.check-in__description {
+  margin: 10px 0 16px;
+  color: hsl(0deg 0% 30.6678%);
+  font-size: 13px;
+}
+
+.check-in__options {
+  display: grid;
+  height: 147px;
+  grid-template: repeat(3, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+  gap: 12px 11px;
+}
+
+.check-in__options button {
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  border: 1px solid hsl(21.7021deg 19.6653% 80%);
+  border-radius: 13px;
+  background: transparent;
+  color: hsl(0deg 0% 18.5885%);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.check-in__options button[aria-pressed='true'] {
+  background: var(--check-in-pink);
+}
+
+.check-in__actions {
+  display: flex;
+  gap: 11px;
+  margin-top: calc(29 * var(--art-unit));
+}
+
+.check-in__actions button {
+  flex: 1;
+  height: 40px;
+  border: 0;
+  border-radius: 23px;
+  background: var(--check-in-brown);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.check-in__actions .check-in__previous {
+  background: #beaa9e;
+}
+
+.check-in__actions button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.check-in__skip {
+  width: 100%;
+  margin-top: calc(17 * var(--art-unit));
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--check-in-brown);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.check-in-complete {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: #fffbff;
+  display: grid;
+  grid-template-rows: auto minmax(min-content, 1fr) auto;
+  justify-items: center;
+  overflow-y: auto;
+  padding: max(64px, env(safe-area-inset-top)) 24px max(22px, env(safe-area-inset-bottom));
+}
+
+.check-in-complete__back {
+  justify-self: start;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: #725c53;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.check-in-complete__content {
+  display: grid;
+  justify-items: center;
+  align-self: center;
+  width: min(100%, 342px);
+  padding-block: 16px;
+}
+
+.check-in-complete__art {
+  display: grid;
+  place-items: center;
+  width: min(100%, 236px);
+  aspect-ratio: 236 / 244;
+  border-radius: 84px;
+  background: #fce9e7;
+}
+
+.check-in-complete__art img {
+  width: min(100%, 213px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.check-in-complete h1 {
+  margin: 16px 0 8px;
+  color: #3d2c28;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.check-in-complete p {
+  margin: 0;
+  color: #725c53;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.check-in-complete__home {
+  width: min(100%, 342px);
+  height: 54px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--check-in-brown);
+  color: #fff;
+  font-size: 15px;
+  line-height: 22px;
+}
