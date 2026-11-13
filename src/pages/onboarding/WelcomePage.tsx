@@ -12,8 +12,8 @@ function WelcomePage({ onContinue }: { onContinue: () => void }) {
         <h1 id="welcome-title">안녕! 나는 소미야</h1>
         <p>오늘부터 네 마음을 함께 돌봐줄 친구야.</p>
       </div>
-      <button className="welcome__continue" type="button" onClick={onContinue}>
-        소미 만나기
+      <button className="onboarding-continue" type="button" onClick={onContinue}>
+        다음
       </button>
     </main>
   )

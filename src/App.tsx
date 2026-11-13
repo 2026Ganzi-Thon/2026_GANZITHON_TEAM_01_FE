@@ -3,6 +3,7 @@ import BottomNavigation, { type Screen } from './components/BottomNavigation'
 import ChatPage from './pages/chat/ChatPage'
 import HomePage from './pages/home/HomePage'
 import MyPage from './pages/my/MyPage'
+import IntroductionPage from './pages/onboarding/IntroductionPage'
 import WelcomePage from './pages/onboarding/WelcomePage'
 import RoutinePage from './pages/routine/RoutinePage'
 
@@ -13,14 +14,21 @@ const screens = {
 }
 
 function App() {
-  const [hasSeenWelcome, setHasSeenWelcome] = useState(false)
+  const [onboarding, setOnboarding] = useState<'welcome' | 'introduction' | 'complete'>('welcome')
   const [screen, setScreen] = useState<Screen>('home')
   const Page = screen === 'home' ? null : screens[screen]
 
-  if (!hasSeenWelcome) {
+  if (onboarding !== 'complete') {
     return (
       <div className="app-frame">
-        <WelcomePage onContinue={() => setHasSeenWelcome(true)} />
+        {onboarding === 'welcome' ? (
+          <WelcomePage onContinue={() => setOnboarding('introduction')} />
+        ) : (
+          <IntroductionPage
+            onBack={() => setOnboarding('welcome')}
+            onContinue={() => setOnboarding('complete')}
+          />
+        )}
       </div>
     )
   }
