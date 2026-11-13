@@ -1,0 +1,67 @@
+.welcome {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: max(62px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom));
+  background: #fdf9fc;
+  color: #3d2c28;
+}
+
+.welcome__brand {
+  font: 700 20px/28px Pretendard, system-ui, sans-serif;
+}
+
+.welcome__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-block: 20px;
+  text-align: center;
+}
+
+.welcome__portrait {
+  display: flex;
+  width: min(236px, 100%);
+  height: 244px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 84px;
+  background: #fce9e7;
+}
+
+.welcome__portrait img {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.welcome__intro h1 {
+  margin: 16px 0 8px;
+  font: 700 24px/44px 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+}
+
+.welcome__intro p {
+  margin: 0;
+  color: #725c53;
+  font: 400 15px/22px Pretendard, system-ui, sans-serif;
+}
+
+.welcome__continue {
+  justify-self: center;
+  width: min(342px, 100%);
+  min-height: 54px;
+  border: 0;
+  border-radius: 22px;
+  background: #9f8170;
+  color: #fff;
+  font: 700 15px/22px Pretendard, system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.welcome__continue:focus-visible {
+  outline: 2px solid #3d2c28;
+  outline-offset: 3px;
+}
