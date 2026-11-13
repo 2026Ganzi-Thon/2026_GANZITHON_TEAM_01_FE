@@ -1,0 +1,48 @@
+.nickname {
+  grid-template-rows: 1fr;
+}
+
+.nickname__form {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  row-gap: 16px;
+  font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+}
+
+.nickname__content {
+  width: min(342px, 100%);
+  padding-block: 20px;
+}
+
+.nickname__content h1 {
+  margin: 0 0 10px;
+  color: #3d2c28;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.nickname__content p,
+.nickname__content input {
+  color: #725c53;
+  font: 400 15px/22px 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+}
+
+.nickname__content p {
+  margin: 0 0 16px;
+}
+
+.nickname__content input {
+  width: 100%;
+  height: 54px;
+  padding-inline: 16px;
+  border: 1px solid #9f8170;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.nickname__content input::placeholder {
+  color: #725c53;
+  opacity: 1;
+}

@@ -1,10 +1,13 @@
 import originalSheep from '../../assets/image/original_sheep.png'
 import '../../styles/onboarding/WelcomePage.css'
 
-function WelcomePage({ onContinue }: { onContinue: () => void }) {
+function WelcomePage({ onContinue, onLogin }: { onContinue: () => void; onLogin: () => void }) {
   return (
     <main className="welcome" aria-labelledby="welcome-title">
-      <header className="welcome__brand">솜</header>
+      <header className="welcome__brand">
+        솜
+        <button className="welcome__login" type="button" onClick={onLogin}>로그인</button>
+      </header>
       <div className="welcome__intro">
         <div className="welcome__portrait">
           <img src={originalSheep} width="194" height="225" alt="" />
