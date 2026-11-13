@@ -14,18 +14,13 @@ import WelcomePage from './pages/onboarding/WelcomePage'
 import RoutinePage from './pages/routine/RoutinePage'
 import { profileSteps } from './situationOptions'
 
-const screens = {
-  chat: ChatPage,
-  routine: RoutinePage,
-}
-
 function App() {
   const [onboarding, setOnboarding] = useState<'welcome' | 'login' | 'introduction' | 'consent' | 'signup' | 'nickname' | 'situation' | 'summary' | 'complete'>('welcome')
   const [nickname, setNickname] = useState('')
   const [profileStep, setProfileStep] = useState(0)
   const [profileAnswers, setProfileAnswers] = useState<string[][]>(() => profileSteps.map(() => []))
   const [screen, setScreen] = useState<Screen>('home')
-  const Page = screen === 'chat' || screen === 'routine' ? screens[screen] : null
+  const [sheepLevel, setSheepLevel] = useState<1 | 2>(2)
 
   function updateProfileAnswer(step: number, answer: string[]) {
     setProfileAnswers((current) => current.map((value, index) => index === step ? answer : value))
@@ -91,7 +86,18 @@ function App() {
   return (
     <div className={screen === 'home' ? 'app-frame app-frame--home' : 'app-frame'}>
       <div className="app-layout">
-        {screen === 'my' ? <MyPage nickname={nickname} answers={profileAnswers} onAnswerChange={updateProfileAnswer} /> : Page ? <Page /> : <HomePage onOpenRoutine={() => setScreen('routine')} />}
+        {screen === 'my' ? (
+          <MyPage nickname={nickname} answers={profileAnswers} onAnswerChange={updateProfileAnswer} />
+        ) : screen === 'chat' ? (
+          <ChatPage onOpenRoutine={() => setScreen('routine')} />
+        ) : screen === 'routine' ? (
+          <RoutinePage onHome={(allCompleted) => {
+            if (allCompleted) setSheepLevel(1)
+            setScreen('home')
+          }} />
+        ) : (
+          <HomePage sheepLevel={sheepLevel} onOpenRoutine={() => setScreen('routine')} />
+        )}
         <BottomNavigation screen={screen} onSelect={setScreen} />
       </div>
     </div>

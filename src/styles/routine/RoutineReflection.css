@@ -1,0 +1,134 @@
+.app-layout:has(.routine-reflection-complete) {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-layout:has(.routine-reflection-complete) > .bottom-navigation {
+  visibility: hidden;
+}
+
+.routine-page.routine-reflection {
+  display: flex;
+  flex-direction: column;
+  padding: max(54px, 7cqh, env(safe-area-inset-top)) 5% 16px;
+  color: #000;
+}
+
+.routine-reflection header {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+}
+
+.routine-reflection h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.routine-reflection form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: clamp(24px, 6cqh, 52px);
+  padding-top: clamp(24px, 5.3cqh, 44px);
+}
+
+.routine-reflection fieldset,
+.routine-reflection__journal {
+  width: min(100%, 328px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+}
+
+.routine-reflection legend,
+.routine-reflection__journal label {
+  padding: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.routine-reflection__moods {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 13px;
+  max-width: 284px;
+  margin: 20px auto 0;
+}
+
+.routine-reflection__moods button {
+  display: grid;
+  width: 86px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #d3ab9e;
+  border-radius: 19px;
+  background: transparent;
+  color: #59443a;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.routine-reflection__moods button[aria-pressed='true'] {
+  background: #e8c7be;
+}
+
+.routine-reflection__moods button:focus-visible {
+  outline: 2px solid #9f8170;
+  outline-offset: 2px;
+}
+
+.routine-reflection__journal p {
+  margin: 8px 0 14px;
+  color: hsl(0deg 0% 30.6678%);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.routine-reflection textarea {
+  display: block;
+  width: 100%;
+  height: 129px;
+  padding: 13px 12px;
+  resize: none;
+  border: 1px solid #d3ab9e;
+  border-radius: 26px;
+  background: #fff;
+  color: #59443a;
+  font: 400 12px/normal Pretendard, system-ui, sans-serif;
+}
+
+.routine-reflection textarea::placeholder {
+  color: hsl(21.2903deg 20.2614% 70%);
+}
+
+.routine-reflection textarea:placeholder-shown {
+  padding-top: 14px;
+  padding-left: 15px;
+}
+
+.routine-reflection__skip {
+  display: block;
+  margin: 6px 0 0 auto;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: #947367;
+  font: 500 12px/normal Pretendard, system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.routine-reflection__journal .routine-reflection__skip {
+  margin-top: 15px;
+}
+
+.routine-exercise__actions.routine-reflection__actions {
+  margin-top: auto;
+  padding-top: 16px;
+}
