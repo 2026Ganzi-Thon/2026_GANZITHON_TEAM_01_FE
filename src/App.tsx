@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BottomNavigation, { type Screen } from './components/BottomNavigation'
 import ChatPage from './pages/chat/ChatPage'
 import HomePage from './pages/home/HomePage'
 import MyPage from './pages/my/MyPage'
+import HelpPage from './pages/my/HelpPage'
 import ConsentPage from './pages/auth/ConsentPage'
 import IntroductionPage from './pages/onboarding/IntroductionPage'
 import LoginPage from './pages/auth/LoginPage'
@@ -21,6 +22,23 @@ function App() {
   const [profileAnswers, setProfileAnswers] = useState<string[][]>(() => profileSteps.map(() => []))
   const [screen, setScreen] = useState<Screen>('home')
   const [sheepLevel, setSheepLevel] = useState<1 | 2>(2)
+  const [showHelp, setShowHelp] = useState(() => window.location.hash === '#help')
+
+  useEffect(() => {
+    function updateHelpPage() {
+      setShowHelp(window.location.hash === '#help')
+    }
+
+    window.addEventListener('hashchange', updateHelpPage)
+    return () => window.removeEventListener('hashchange', updateHelpPage)
+  }, [])
+
+  function closeHelp() {
+    if (window.location.hash === '#help') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+    setShowHelp(false)
+  }
 
   function updateProfileAnswer(step: number, answer: string[]) {
     setProfileAnswers((current) => current.map((value, index) => index === step ? answer : value))
@@ -84,9 +102,14 @@ function App() {
   }
 
   return (
-    <div className={screen === 'home' ? 'app-frame app-frame--home' : 'app-frame'}>
+    <div className={screen === 'home' && !showHelp ? 'app-frame app-frame--home' : 'app-frame'}>
       <div className="app-layout">
-        {screen === 'my' ? (
+        {showHelp ? (
+          <HelpPage onBack={() => {
+            closeHelp()
+            setScreen('my')
+          }} />
+        ) : screen === 'my' ? (
           <MyPage nickname={nickname} answers={profileAnswers} onAnswerChange={updateProfileAnswer} />
         ) : screen === 'chat' ? (
           <ChatPage onOpenRoutine={() => setScreen('routine')} />
@@ -98,7 +121,10 @@ function App() {
         ) : (
           <HomePage sheepLevel={sheepLevel} onOpenRoutine={() => setScreen('routine')} />
         )}
-        <BottomNavigation screen={screen} onSelect={setScreen} />
+        <BottomNavigation screen={showHelp ? 'my' : screen} onSelect={(nextScreen) => {
+          closeHelp()
+          setScreen(nextScreen)
+        }} />
       </div>
     </div>
   )
