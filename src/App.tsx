@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BottomNavigation, { type Screen } from './components/BottomNavigation'
 import ChatPage from './pages/chat/ChatPage'
 import HomePage from './pages/home/HomePage'
 import MyPage from './pages/my/MyPage'
+import HelpPage from './pages/my/HelpPage'
 import ConsentPage from './pages/auth/ConsentPage'
 import IntroductionPage from './pages/onboarding/IntroductionPage'
 import LoginPage from './pages/auth/LoginPage'
@@ -14,18 +15,30 @@ import WelcomePage from './pages/onboarding/WelcomePage'
 import RoutinePage from './pages/routine/RoutinePage'
 import { profileSteps } from './situationOptions'
 
-const screens = {
-  chat: ChatPage,
-  routine: RoutinePage,
-}
-
 function App() {
   const [onboarding, setOnboarding] = useState<'welcome' | 'login' | 'introduction' | 'consent' | 'signup' | 'nickname' | 'situation' | 'summary' | 'complete'>('welcome')
   const [nickname, setNickname] = useState('')
   const [profileStep, setProfileStep] = useState(0)
   const [profileAnswers, setProfileAnswers] = useState<string[][]>(() => profileSteps.map(() => []))
   const [screen, setScreen] = useState<Screen>('home')
-  const Page = screen === 'chat' || screen === 'routine' ? screens[screen] : null
+  const [sheepLevel, setSheepLevel] = useState<1 | 2>(2)
+  const [showHelp, setShowHelp] = useState(() => window.location.hash === '#help')
+
+  useEffect(() => {
+    function updateHelpPage() {
+      setShowHelp(window.location.hash === '#help')
+    }
+
+    window.addEventListener('hashchange', updateHelpPage)
+    return () => window.removeEventListener('hashchange', updateHelpPage)
+  }, [])
+
+  function closeHelp() {
+    if (window.location.hash === '#help') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+    setShowHelp(false)
+  }
 
   function updateProfileAnswer(step: number, answer: string[]) {
     setProfileAnswers((current) => current.map((value, index) => index === step ? answer : value))
@@ -89,10 +102,29 @@ function App() {
   }
 
   return (
-    <div className={screen === 'home' ? 'app-frame app-frame--home' : 'app-frame'}>
+    <div className={screen === 'home' && !showHelp ? 'app-frame app-frame--home' : 'app-frame'}>
       <div className="app-layout">
-        {screen === 'my' ? <MyPage nickname={nickname} answers={profileAnswers} onAnswerChange={updateProfileAnswer} /> : Page ? <Page /> : <HomePage onOpenRoutine={() => setScreen('routine')} />}
-        <BottomNavigation screen={screen} onSelect={setScreen} />
+        {showHelp ? (
+          <HelpPage onBack={() => {
+            closeHelp()
+            setScreen('my')
+          }} />
+        ) : screen === 'my' ? (
+          <MyPage nickname={nickname} answers={profileAnswers} onAnswerChange={updateProfileAnswer} />
+        ) : screen === 'chat' ? (
+          <ChatPage onOpenRoutine={() => setScreen('routine')} />
+        ) : screen === 'routine' ? (
+          <RoutinePage onHome={(allCompleted) => {
+            if (allCompleted) setSheepLevel(1)
+            setScreen('home')
+          }} />
+        ) : (
+          <HomePage sheepLevel={sheepLevel} onOpenRoutine={() => setScreen('routine')} />
+        )}
+        <BottomNavigation screen={showHelp ? 'my' : screen} onSelect={(nextScreen) => {
+          closeHelp()
+          setScreen(nextScreen)
+        }} />
       </div>
     </div>
   )

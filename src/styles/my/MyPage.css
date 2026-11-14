@@ -1,0 +1,164 @@
+.my-page {
+  overflow-y: auto;
+  padding: max(32px, env(safe-area-inset-top)) 15px 20px;
+  color: #000;
+  font-family: Pretendard, system-ui, sans-serif;
+}
+
+.my-page h1 {
+  margin: 0 5px 24px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.my-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid #d3ab9e;
+  border-radius: 26px;
+  background: #fff;
+}
+
+.my-page__records {
+  min-height: 292px;
+  padding: 20px 18px 14px;
+}
+
+.my-page__records-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.my-page__records-header h2 {
+  width: 81px;
+  height: 23px;
+  margin: 0;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.my-page__period {
+  display: flex;
+  width: 95px;
+  height: 35px;
+  padding: 3px;
+  border-radius: 17.5px;
+  background: #eac9c1;
+}
+
+.my-page__period button {
+  flex: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 17.5px;
+  background: transparent;
+  color: inherit;
+  font: 500 12px Pretendard, system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.my-page__period button[aria-pressed='true'] {
+  background: #fff;
+}
+
+.my-page__chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
+  min-height: 170px;
+  margin-top: auto;
+}
+
+.my-page__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.my-page__bar {
+  align-self: stretch;
+  border-radius: 10px 10px 0 0;
+  background: #eac9c1;
+}
+
+.my-page__bar[data-peak] {
+  background: #d3ab9e;
+}
+
+.my-page__note {
+  margin: 0;
+  color: hsl(0deg 0% 30.6678%);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.my-page__empty {
+  margin: auto;
+}
+
+.my-page__settings {
+  gap: 23px;
+  margin-top: 20px;
+  padding: 20px 23px 21px 20px;
+}
+
+.my-page__menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  list-style: none;
+}
+
+summary.my-page__menu {
+  cursor: pointer;
+}
+
+summary.my-page__menu::-webkit-details-marker {
+  display: none;
+}
+
+.my-page__menu .my-page__note {
+  display: block;
+  margin-top: 2px;
+}
+
+.my-page__help-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.my-page__chevron {
+  display: grid;
+  flex: 0 0 22px;
+  height: 22px;
+  place-items: center;
+}
+
+.my-page__chevron::before {
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  content: '';
+}
+
+details[open] .my-page__chevron::before {
+  transform: rotate(135deg);
+}

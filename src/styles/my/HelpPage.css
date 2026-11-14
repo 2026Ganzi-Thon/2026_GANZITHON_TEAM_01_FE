@@ -1,0 +1,119 @@
+.help-page {
+  overflow-y: auto;
+  padding: max(32px, env(safe-area-inset-top)) clamp(18px, 8cqw, 35px) 20px;
+  color: #000;
+  font-family: Pretendard, system-ui, sans-serif;
+}
+
+.help-page :is(h1, h2, h3, p) {
+  margin: 0;
+}
+
+.help-page__header {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.help-page__header button {
+  display: grid;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #211e22;
+  cursor: pointer;
+}
+
+.help-page__header h1 {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.help-page__intro {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.help-page__intro p + p {
+  color: hsl(0deg 0% 30.6678%);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.help-page__cards {
+  display: grid;
+  gap: 18px;
+}
+
+.help-page__card {
+  display: grid;
+  gap: 10px;
+  padding: 18px clamp(12px, 5cqw, 22px) 18px clamp(12px, 5cqw, 21px);
+  border: 1px solid #d3ab9e;
+  border-radius: 26px;
+  background: #fff;
+}
+
+.help-page__card h2 {
+  color: #9f8170;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.help-page__card[data-urgent] {
+  min-height: 111px;
+  padding-block: 19px 21px;
+  background: #fdeae5;
+}
+
+.help-page__card[data-urgent] h2 {
+  color: #000;
+  font-weight: 700;
+}
+
+.help-page__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.help-page__row h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.help-page__row p {
+  margin-top: 3px;
+  color: #666;
+  font-size: 12px;
+}
+
+.help-page__action {
+  display: inline-flex;
+  width: 114px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 5px 12px 6px 13px;
+  border: 1px solid #d3ab9e;
+  border-radius: 13px;
+  color: inherit;
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.help-page__card[data-urgent] .help-page__action {
+  background: #d3ab9e;
+}

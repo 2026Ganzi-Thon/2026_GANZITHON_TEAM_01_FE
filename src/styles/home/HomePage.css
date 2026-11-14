@@ -137,7 +137,6 @@
   left: calc(50% - 14 * var(--art-unit));
   width: calc(323 * var(--art-unit));
   height: auto;
-  aspect-ratio: 96 / 119;
   transform: translateX(-50%);
 }
 

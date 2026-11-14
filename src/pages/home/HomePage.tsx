@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import originalSheep from '../../assets/image/original_sheep.png'
+import levelOneSheep from '../../assets/image/sheep_1.png'
 import miniSheep from '../../assets/image/sheep_mini.png'
 import speechBubble from '../../assets/image/speech_bubble.png'
 import { CheckIn, CheckInComplete, checkInSteps } from './CheckIn'
@@ -8,7 +9,7 @@ import '../../styles/home/HomePage.css'
 
 const panels = ['하루 체크인', '홈', '이번 주 변화']
 
-function HomePage({ onOpenRoutine }: { onOpenRoutine: () => void }) {
+function HomePage({ sheepLevel, onOpenRoutine }: { sheepLevel: 1 | 2; onOpenRoutine: () => void }) {
   const slidesRef = useRef<HTMLDivElement>(null)
   const backgroundRef = useRef<HTMLDivElement>(null)
   const [current, setCurrent] = useState(1)
@@ -74,10 +75,10 @@ function HomePage({ onOpenRoutine }: { onOpenRoutine: () => void }) {
           )}
         </section>
         <section className="home__panel" aria-label={panels[1]}>
-          <div className="sheep-progress" role="img" aria-label="2단계">
+          <div className="sheep-progress" role="img" aria-label={`${sheepLevel}단계`}>
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img src={miniSheep} width="66" height="49" alt="" />
-            <span className="sheep-progress__number">2</span>
+            <span className="sheep-progress__number">{sheepLevel}</span>
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
           </div>
@@ -86,7 +87,13 @@ function HomePage({ onOpenRoutine }: { onOpenRoutine: () => void }) {
             <img src={speechBubble} width="206" height="53" alt="" />
             <p>오늘 있었던 일, 나한테 들려줄래?</p>
           </div>
-          <img className="home__sheep" src={originalSheep} width="338" height="419" alt="양" />
+          <img
+            className="home__sheep"
+            src={sheepLevel === 1 ? levelOneSheep : originalSheep}
+            width={sheepLevel === 1 ? 253 : 338}
+            height={sheepLevel === 1 ? 253 : 419}
+            alt="양"
+          />
         </section>
         <section className="home__panel home__panel--summary" aria-label={panels[2]} inert={current !== 2}>
           <WeeklyChanges onOpenRoutine={onOpenRoutine} />

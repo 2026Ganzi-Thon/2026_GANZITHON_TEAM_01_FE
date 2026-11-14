@@ -62,9 +62,10 @@ export function CheckIn({ step, answer, onSelect, onPrevious, onNext, onSkip }: 
 type CheckInCompleteProps = {
   onPrevious: () => void
   onHome: () => void
+  title?: string
 }
 
-export function CheckInComplete({ onPrevious, onHome }: CheckInCompleteProps) {
+export function CheckInComplete({ onPrevious, onHome, title = '하루 체크인 완료!' }: CheckInCompleteProps) {
   return (
     <section className="check-in-complete" aria-labelledby="check-in-complete-title">
       <button className="check-in-complete__back" type="button" onClick={onPrevious}>‹ 이전</button>
@@ -72,7 +73,7 @@ export function CheckInComplete({ onPrevious, onHome }: CheckInCompleteProps) {
         <div className="check-in-complete__art">
           <img src={completedSheep} width="213" height="213" alt="" />
         </div>
-        <h1 id="check-in-complete-title" role="status">하루 체크인 완료!</h1>
+        <h1 id="check-in-complete-title" role="status">{title}</h1>
         <p>오늘의 마음을 확인했어요!</p>
       </div>
       <button className="check-in-complete__home" type="button" onClick={onHome}>메인 홈으로</button>

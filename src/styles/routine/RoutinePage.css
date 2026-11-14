@@ -1,0 +1,229 @@
+.routine-page {
+  --routine-text: hsl(21.7021deg 19.6653% 20%);
+  --routine-muted: hsl(21.7021deg 19.6653% 53.1373%);
+  --routine-accent: hsl(10.5495deg 86.6667% 79.4118%);
+  overflow: auto;
+  scrollbar-width: none;
+  min-width: 0;
+  padding: max(24px, 6.2cqh, env(safe-area-inset-top)) 20px 32px;
+  color: var(--routine-text);
+  font-family: Pretendard, system-ui, sans-serif;
+}
+
+.routine-page::-webkit-scrollbar {
+  display: none;
+}
+
+.routine-intro {
+  display: grid;
+  gap: 8px;
+}
+
+.routine-intro h1 {
+  margin: 0;
+  font: normal 700 20px/normal Pretendard, system-ui, sans-serif;
+}
+
+.routine-intro p {
+  margin: 0;
+  font: normal 400 14px/normal Pretendard, system-ui, sans-serif;
+}
+
+.routine-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 36px));
+  justify-content: center;
+  gap: 12px;
+  margin: 24px 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.routine-week li {
+  display: grid;
+  gap: 5px;
+  color: hsl(0deg 0% 19.7472%);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.routine-day {
+  display: flex;
+  height: 36px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 18px;
+  font-size: 14px;
+  transition: background-color 180ms ease;
+}
+
+.routine-status {
+  display: flex;
+  padding: 10px 20px;
+  align-items: center;
+  gap: 19px;
+  border-radius: 16px;
+  background: hsl(11.7073deg 92.2532% 97%);
+}
+
+.routine-sheep {
+  display: flex;
+  flex: none;
+  padding: 15px 20px;
+  align-items: center;
+  gap: 10px;
+  border-radius: 100px;
+  background: hsl(11.6291deg 100% 97.8431%);
+}
+
+.routine-sheep img {
+  aspect-ratio: 44 / 51;
+  object-fit: contain;
+}
+
+.routine-status-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.routine-status-label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  color: hsl(19.3548deg 30.3922% 66%);
+  font-size: 12px;
+}
+
+.routine-status-copy strong {
+  color: hsl(21deg 19.6078% 20%);
+  font-size: 18px;
+}
+
+.routine-status-copy p,
+.routine-section-heading p {
+  margin: 0;
+  color: var(--routine-muted);
+  font-size: 12px;
+}
+
+.routine-section {
+  margin-top: 32px;
+}
+
+.routine-reflections {
+  margin-top: 54px;
+}
+
+.routine-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.routine-section-heading h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.routine-section-heading p {
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.routine-section-heading > span {
+  flex: none;
+  color: hsl(21.7021deg 33.3139% 44.7566%);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.routine-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.routine-card {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 19px;
+  padding: 12px 20px;
+  border: 1px solid #f6d7d3;
+  border-radius: 16px;
+  background: #fff;
+  color: hsl(21deg 19.6078% 20%);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.routine-card[data-completed='true'] {
+  background: #fde9e5;
+}
+
+.routine-card:disabled {
+  color: #595959;
+  cursor: default;
+}
+
+.routine-thumbnail,
+.routine-reflection-icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  aspect-ratio: 1;
+}
+
+.routine-thumbnail {
+  border-radius: 13px;
+  background: lightgray -3.739px -3.504px / 115.604% 116.581% no-repeat;
+}
+
+.routine-reflection-icon {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #f6d7d3;
+}
+
+.routine-reflection-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.routine-card-copy {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  color: var(--routine-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.routine-card-copy strong {
+  color: hsl(21deg 19.6078% 20%);
+  font-size: 14px;
+}
+
+.routine-card:disabled strong {
+  color: inherit;
+}
+
+.routine-card > img {
+  flex: none;
+}
+
+.routine-duration {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--routine-accent);
+}
+

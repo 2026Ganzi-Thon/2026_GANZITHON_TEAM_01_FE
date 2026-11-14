@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@800&display=swap');
+
+.app-layout:has(.routine-exercise) {
+  position: relative;
+  isolation: isolate;
+}
+
+.routine-exercise {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: auto;
+  scrollbar-width: none;
+  padding: max(54px, 7cqh, env(safe-area-inset-top)) 4% 16px;
+  color: hsl(21.7021deg 19.6653% 20%);
+  font-family: Pretendard, system-ui, sans-serif;
+}
+
+.routine-exercise::-webkit-scrollbar {
+  display: none;
+}
+
+.routine-exercise__background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: #f4c7c9;
+  background-position: center;
+  background-size: cover;
+}
+
+.routine-exercise__back {
+  display: grid;
+  place-items: center;
+  align-self: flex-start;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.routine-exercise__back span {
+  width: 9px;
+  height: 15px;
+  background: #9f8170;
+  clip-path: polygon(80% 0, 100% 15%, 30% 50%, 100% 85%, 80% 100%, 0 50%);
+}
+
+.routine-exercise__steps {
+  display: flex;
+  gap: 8px;
+  margin: clamp(12px, 3cqh, 26px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.routine-exercise__steps li {
+  flex: 1 0 0;
+  height: 6px;
+  border-radius: 22px;
+  background: hsl(6.8571deg 66.0378% 89.6078%);
+}
+
+.routine-exercise__steps [aria-current='step'] {
+  background: hsl(21.7021deg 15.3621% 51.1907%);
+}
+
+.routine-exercise h1 {
+  margin: clamp(22px, 4.7cqh, 40px) 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.routine-exercise__title--light {
+  color: #fff;
+}
+
+.routine-exercise__timer {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: clamp(144px, 26.3cqh, 222px);
+  aspect-ratio: 1;
+  margin: auto auto clamp(16px, 3.8cqh, 34px);
+  border-radius: 50%;
+  background: hsl(0deg 0% 100% / 0.33);
+  font: 800 30px/normal Figtree, system-ui, sans-serif;
+  letter-spacing: 1.8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.routine-exercise__timer::before {
+  position: absolute;
+  inset: 0;
+  padding: 4px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg,
+    #f8f8f8 0deg var(--elapsed-arc),
+    #ac9185 calc(var(--elapsed-arc) + min(24deg, var(--elapsed-arc))) 360deg);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  content: '';
+}
+
+.routine-exercise__guidance {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(8px, 4cqw, 18px);
+  padding-inline: 4px;
+}
+
+.routine-exercise__guidance img {
+  flex: none;
+  width: min(24cqw, 87px);
+  height: auto;
+  aspect-ratio: 82 / 115;
+  object-fit: contain;
+}
+
+.routine-exercise__bubble {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 24px 24px 24px 0;
+  background: rgba(255, 255, 255, 0.5);
+  color: hsl(15.7895deg 18.4466% 40%);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+.routine-exercise__bubble p {
+  margin: 0;
+}
+
+.routine-exercise__bubble p:last-child {
+  font-weight: 400;
+}
+
+.routine-exercise__actions {
+  display: flex;
+  gap: 12px;
+  width: min(100%, 348px);
+  margin: clamp(12px, 3cqh, 28px) auto 0;
+}
+
+.routine-exercise__actions button {
+  flex: 1;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 23px;
+  background: #bdab9f;
+  color: #fff;
+  font: 700 15px/normal Pretendard, system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.routine-exercise__actions button:last-child {
+  background: #9f8170;
+}
+
+.routine-exercise__actions button:disabled {
+  background: #bdab9f;
+  cursor: default;
+}
