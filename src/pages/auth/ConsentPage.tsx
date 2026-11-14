@@ -46,7 +46,7 @@ function ConsentPage({ onContinue }: { onContinue: () => void }) {
         </section>
       </div>
 
-      <button className="onboarding-continue consent__continue" type="button" disabled={!allAccepted} onClick={onContinue}>
+      <button className="onboarding-continue" type="button" disabled={!allAccepted} onClick={onContinue}>
         동의하고 시작하기
       </button>
     </main>

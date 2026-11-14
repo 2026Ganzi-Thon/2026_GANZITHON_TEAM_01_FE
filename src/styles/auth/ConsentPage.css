@@ -4,7 +4,7 @@
   gap: 32px;
   height: 100%;
   overflow-y: auto;
-  padding: max(90px, env(safe-area-inset-top)) 24px max(20px, env(safe-area-inset-bottom));
+  padding: max(90px, env(safe-area-inset-top)) 24px max(26px, env(safe-area-inset-bottom));
   background: #fff;
   font-family: Pretendard, system-ui, sans-serif;
 }
@@ -93,11 +93,6 @@
   font-size: 12px;
 }
 
-.consent__continue {
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.consent__continue:disabled {
+.consent .onboarding-continue:disabled {
   cursor: default;
 }

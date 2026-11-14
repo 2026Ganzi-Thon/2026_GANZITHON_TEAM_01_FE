@@ -119,14 +119,6 @@
   list-style: none;
 }
 
-summary.my-page__menu {
-  cursor: pointer;
-}
-
-summary.my-page__menu::-webkit-details-marker {
-  display: none;
-}
-
 .my-page__menu .my-page__note {
   display: block;
   margin-top: 2px;
@@ -157,8 +149,4 @@ summary.my-page__menu::-webkit-details-marker {
   border-right: 2px solid currentColor;
   transform: rotate(45deg);
   content: '';
-}
-
-details[open] .my-page__chevron::before {
-  transform: rotate(135deg);
 }

@@ -49,13 +49,19 @@ function App() {
     else setProfileStep(profileStep + 1)
   }
 
+  function openHome() {
+    closeHelp()
+    setScreen('home')
+    setOnboarding('complete')
+  }
+
   if (onboarding !== 'complete') {
     return (
       <div className="app-frame">
         {onboarding === 'welcome' ? (
           <WelcomePage onContinue={() => setOnboarding('introduction')} onLogin={() => setOnboarding('login')} />
         ) : onboarding === 'login' ? (
-          <LoginPage />
+          <LoginPage onLogin={openHome} />
         ) : onboarding === 'introduction' ? (
           <IntroductionPage
             onBack={() => setOnboarding('welcome')}
@@ -77,8 +83,9 @@ function App() {
           />
         ) : onboarding === 'summary' ? (
           <OnboardingCompletePage
+            nickname={nickname}
             onBack={() => setOnboarding('situation')}
-            onHome={() => setOnboarding('complete')}
+            onHome={openHome}
           />
         ) : (
           <SituationPage
@@ -110,7 +117,7 @@ function App() {
             setScreen('my')
           }} />
         ) : screen === 'my' ? (
-          <MyPage nickname={nickname} answers={profileAnswers} onAnswerChange={updateProfileAnswer} />
+          <MyPage />
         ) : screen === 'chat' ? (
           <ChatPage onOpenRoutine={() => setScreen('routine')} />
         ) : screen === 'routine' ? (
