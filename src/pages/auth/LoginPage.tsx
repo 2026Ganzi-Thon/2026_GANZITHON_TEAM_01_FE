@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import '../../styles/auth/LoginPage.css'
 
-function LoginPage() {
+function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [notice, setNotice] = useState('')
 
   return (
@@ -11,12 +11,12 @@ function LoginPage() {
         className="login__form"
         onSubmit={(event) => {
           event.preventDefault()
-          setNotice('로그인 기능은 아직 연결되지 않았어요.')
+          onLogin()
         }}
       >
         <div className="login__fields">
-          <input aria-label="아이디" placeholder="아이디" autoComplete="username" autoCapitalize="none" spellCheck={false} required />
-          <input aria-label="비밀번호" placeholder="비밀번호" type="password" autoComplete="current-password" required />
+          <input aria-label="아이디" placeholder="아이디" autoComplete="username" autoCapitalize="none" spellCheck={false} />
+          <input aria-label="비밀번호" placeholder="비밀번호" type="password" autoComplete="current-password" />
         </div>
         <button className="onboarding-continue login__submit" type="submit">로그인</button>
       </form>

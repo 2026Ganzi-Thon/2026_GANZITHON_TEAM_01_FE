@@ -28,9 +28,3 @@
   font-weight: 400;
   line-height: 22px;
 }
-
-.onboarding-complete__content .onboarding-complete__note {
-  margin-top: 18px;
-  color: hsl(17.4194deg 15.736% 50%);
-  font: 400 13px/19px Pretendard, system-ui, sans-serif;
-}

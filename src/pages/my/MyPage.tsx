@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { profileSteps } from '../../situationOptions'
 import '../../styles/my/MyPage.css'
 
 const weeklyBars = [
@@ -13,17 +12,12 @@ const weeklyBars = [
 ]
 
 const menus = [
+  { label: '데이터 연결 관리' },
   { label: '알림 설정' },
   { label: '개인정보 및 데이터 삭제' },
 ]
 
-type MyPageProps = {
-  nickname: string
-  answers: string[][]
-  onAnswerChange: (step: number, answer: string[]) => void
-}
-
-export default function MyPage({ nickname, answers, onAnswerChange }: MyPageProps) {
+export default function MyPage() {
   const [period, setPeriod] = useState<7 | 30>(7)
 
   return (
@@ -59,47 +53,6 @@ export default function MyPage({ nickname, answers, onAnswerChange }: MyPageProp
       </section>
 
       <section className="my-page__card my-page__settings" aria-label="설정">
-        <details>
-          <summary className="my-page__menu">
-            데이터 연결 관리
-            <span className="my-page__chevron" aria-hidden="true" />
-          </summary>
-          <div>
-              {nickname && <p>{nickname}</p>}
-              {profileSteps.map(({ label, options, multiple }, index) => {
-                const answer = answers[index]
-
-                return multiple ? (
-                  <fieldset key={label}>
-                    <legend>{label}</legend>
-                    {options.map((option) => (
-                      <div key={option}>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={answer.includes(option)}
-                            onChange={(event) => onAnswerChange(index, event.target.checked ? [...answer, option] : answer.filter((value) => value !== option))}
-                          />
-                          {option}
-                        </label>
-                      </div>
-                    ))}
-                  </fieldset>
-                ) : (
-                  <p key={label}>
-                    <label>
-                      {label}{' '}
-                      <select value={answer[0] ?? ''} onChange={(event) => onAnswerChange(index, event.target.value ? [event.target.value] : [])}>
-                        <option value="">선택 안 함</option>
-                        {options.map((option) => <option key={option}>{option}</option>)}
-                      </select>
-                    </label>
-                  </p>
-                )
-              })}
-          </div>
-        </details>
-
         {menus.map(({ label }) => (
           <div className="my-page__menu" key={label}>
             {label}

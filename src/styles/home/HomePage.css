@@ -46,8 +46,23 @@
 
 .home {
   --home-border: #d3ab9e;
+  --home-shortcut-size: clamp(44px, calc(52 * var(--art-unit)), 58px);
+  --home-controls-bottom: clamp(12px, calc(19 * var(--art-unit)), 22px);
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.home:not([data-panel='1']) {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.home:not([data-panel='1']) > :is(.home__slides, .home__controls) {
+  grid-area: 1 / 1;
+}
+
+.home:not([data-panel='1']) > .home__controls {
+  align-self: end;
+  pointer-events: none;
 }
 
 .home__slides {
@@ -71,6 +86,8 @@
 .home__panel--summary {
   overflow-y: auto;
   overscroll-behavior-y: contain;
+  padding-bottom: calc(var(--home-shortcut-size) + var(--home-controls-bottom) + 24px);
+  scroll-padding-bottom: calc(var(--home-shortcut-size) + var(--home-controls-bottom) + 24px);
 }
 
 .sheep-progress {
@@ -143,7 +160,7 @@
 .home__controls {
   position: relative;
   margin-inline: max(6.5%, env(safe-area-inset-left), env(safe-area-inset-right));
-  margin-bottom: clamp(12px, calc(19 * var(--art-unit)), 22px);
+  margin-bottom: var(--home-controls-bottom);
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -164,6 +181,7 @@
 
 .home-shortcut:not(:disabled) {
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .home-shortcut:disabled {
@@ -172,13 +190,12 @@
 
 .home-shortcut__circle {
   display: flex;
-  width: clamp(44px, calc(52 * var(--art-unit)), 58px);
+  width: var(--home-shortcut-size);
   aspect-ratio: 1;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--home-border);
   border-radius: 50%;
-  background: #fffbff;
 }
 
 .home-shortcut__circle svg {
