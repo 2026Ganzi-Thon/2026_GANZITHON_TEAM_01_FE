@@ -76,7 +76,7 @@
 }
 
 .routine-reflection__moods button[aria-pressed='true'] {
-  background: #e8c7be;
+  background: #ffe2db;
 }
 
 .routine-reflection__moods button:focus-visible {

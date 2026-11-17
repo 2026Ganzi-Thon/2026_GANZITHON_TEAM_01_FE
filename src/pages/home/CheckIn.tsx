@@ -51,7 +51,7 @@ export function CheckIn({ step, answer, onSelect, onPrevious, onNext, onSkip }: 
         ))}
       </div>
       <div className="check-in__actions">
-        {step > 0 && <button className="check-in__previous" type="button" onClick={onPrevious}>이전</button>}
+        {step > 0 && <button className="check-in__previous" type="button" onClick={onPrevious}> 이전</button>}
         <button type="button" disabled={!answer} onClick={onNext}>다음</button>
       </div>
       <button className="check-in__skip" type="button" onClick={onSkip}>건너뛰기</button>

@@ -25,8 +25,10 @@ export default function WeeklyChanges({ onOpenRoutine }: { onOpenRoutine: () => 
       </div>
 
       <section className="weekly-changes__fatigue" aria-labelledby="weekly-fatigue-title">
-        <p className="weekly-changes__average">2.4 / 4</p>
-        <h2 id="weekly-fatigue-title">이번 주 평균 피로도</h2>
+        <div>
+          <p className="weekly-changes__average">2.4 / 4</p>
+          <h2 id="weekly-fatigue-title">이번 주 평균 피로도</h2>
+        </div>
         <div className="weekly-changes__chart" role="img" aria-label="월요일부터 일요일까지의 피로도. 목요일이 가장 높아요.">
           {weeklyBars.map(({ day, height, highlighted }) => (
             <div className="weekly-changes__day" key={day} aria-hidden="true">
@@ -42,8 +44,8 @@ export default function WeeklyChanges({ onOpenRoutine }: { onOpenRoutine: () => 
           <strong>오늘도 조금 덜어낼까요?</strong>
           <span>나에게 맞는 회복 루틴 살펴보기</span>
         </span>
-        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <path d="m8 3 8 8-8 8" stroke="currentColor" strokeWidth="3" />
+        <svg aria-hidden="true" width="9" height="15" viewBox="0 0 9 15">
+          <path d="M1.5 0 9 7.5 1.5 15 0 13.5 6 7.5 0 1.5Z" />
         </svg>
       </button>
     </div>

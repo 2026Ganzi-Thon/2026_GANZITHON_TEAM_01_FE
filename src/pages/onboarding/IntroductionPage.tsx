@@ -10,7 +10,7 @@ function IntroductionPage({ onBack, onContinue }: { onBack: () => void; onContin
   return (
     <main className="welcome introduction" aria-labelledby="introduction-title">
       <button className="introduction__back" type="button" onClick={onBack}>
-        <span aria-hidden="true">‹</span> 이전
+        <span aria-hidden="true">‹</span>  이전
       </button>
       <section className="introduction__content">
         <h1 id="introduction-title">

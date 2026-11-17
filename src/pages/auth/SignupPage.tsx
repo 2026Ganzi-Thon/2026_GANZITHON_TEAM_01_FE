@@ -5,7 +5,7 @@ function SignupPage({ onComplete }: { onComplete: () => void }) {
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [showMismatch, setShowMismatch] = useState(false)
-  const passwordsMatch = password === confirmation
+  const passwordsMatch = confirmation.length > 0 && password === confirmation
   const hasMismatch = showMismatch && !passwordsMatch
 
   return (
@@ -65,7 +65,7 @@ function SignupPage({ onComplete }: { onComplete: () => void }) {
                   onChange={(event) => setConfirmation(event.target.value)}
                   required
                 />
-                {(!confirmation || passwordsMatch) && <span className="signup__check" aria-hidden="true" />}
+                {passwordsMatch && <span className="signup__check" aria-hidden="true" />}
               </div>
               {hasMismatch && (
                 <p id="signup-password-error" className="signup__error" role="alert">

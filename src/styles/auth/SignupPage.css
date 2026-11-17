@@ -54,14 +54,45 @@
   opacity: 1;
 }
 
+#signup-confirmation {
+  padding-inline-end: 20px;
+}
+
+.signup__field:has(#signup-confirmation) {
+  position: relative;
+}
+
 .signup__check {
+  position: absolute;
+  inset-inline-end: 2px;
   display: grid;
   width: 14px;
   height: 14px;
-  margin-inline: 4px 2px;
   place-items: center;
   border-radius: 50%;
   background: #9f8170;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .signup__check {
+    animation: signup-check-pop 320ms ease-out both;
+  }
+}
+
+@keyframes signup-check-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(3px) scale(0.55);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .signup__check::after {
