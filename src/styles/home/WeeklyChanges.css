@@ -16,8 +16,6 @@
 
 .weekly-changes h1 {
   margin-inline: 12px;
-  padding-bottom: calc(19 * var(--art-unit));
-  border-bottom: 1px solid #edd6d0;
   font-size: 20px;
   text-align: center;
 }
@@ -57,21 +55,26 @@
 .weekly-changes__fatigue {
   display: flex;
   flex-direction: column;
-  min-height: 170px;
+  align-items: flex-start;
+  align-self: stretch;
+  gap: 10px;
+  height: 170px;
   padding: 20px 18px 12px;
-  border: 1px solid #d3ab9e;
   border-radius: 26px;
   background: #fff;
+  box-shadow: 0 0 12px 0 hsl(0deg 0% 21.7886% / 0.06);
 }
 
 .weekly-changes__average {
   font-size: 18px;
   font-weight: 700;
+  line-height: 20px;
 }
 
 .weekly-changes__fatigue h2 {
   font-size: 13px;
   font-weight: 400;
+  line-height: 15px;
 }
 
 .weekly-changes__chart {
@@ -79,7 +82,7 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
   align-items: end;
   gap: clamp(4px, 2cqw, 9px);
-  flex: 1;
+  align-self: stretch;
 }
 
 .weekly-changes__day {
@@ -87,6 +90,7 @@
   gap: 7px;
   font-size: 13px;
   font-weight: 500;
+  line-height: 16px;
   text-align: center;
 }
 
@@ -100,14 +104,17 @@
 }
 
 .weekly-changes__routine {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+  justify-content: center;
   gap: 10px;
   padding: 25px 18px;
   border: 0;
   border-radius: 19px;
-  background: #eac9c1;
+  background: #ffe8e8;
   color: #000;
   font: inherit;
   text-align: start;
@@ -116,16 +123,21 @@
 
 .weekly-changes__routine > span {
   display: grid;
+  margin-inline-end: 27px;
   gap: 6px;
   color: hsl(0deg 0% 30.6678%);
   font-size: 13px;
 }
 
 .weekly-changes__routine strong {
-  color: hsl(0deg 0% 22.8046%);
+  color: #7c635c;
   font-size: 18px;
 }
 
 .weekly-changes__routine svg {
-  flex: none;
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 26px;
+  transform: translateY(-50%);
+  fill: hsl(14.717deg 37.5887% 72.3529%);
 }

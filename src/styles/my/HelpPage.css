@@ -1,6 +1,10 @@
+.app-layout:has(> .help-page) {
+  background: #fafafa;
+}
+
 .help-page {
   overflow-y: auto;
-  padding: max(32px, env(safe-area-inset-top)) clamp(18px, 8cqw, 35px) 20px;
+  padding: max(60px, env(safe-area-inset-top)) clamp(18px, 8cqw, 35px) 20px;
   color: #000;
   font-family: Pretendard, system-ui, sans-serif;
 }
@@ -18,12 +22,12 @@
 
 .help-page__header button {
   display: grid;
-  height: 40px;
-  place-items: center;
+  min-height: 24px;
+  place-items: center start;
   padding: 0;
   border: 0;
   background: transparent;
-  color: #211e22;
+  color: #9f8170;
   cursor: pointer;
 }
 
@@ -37,8 +41,14 @@
   display: grid;
   gap: 5px;
   margin-bottom: 16px;
-  font-size: 20px;
-  font-weight: 500;
+}
+
+.help-page__intro p:first-child {
+  display: flex;
+  min-height: 18px;
+  flex-direction: column;
+  justify-content: center;
+  font: 700 20px Pretendard, system-ui, sans-serif;
 }
 
 .help-page__intro p + p {
@@ -53,33 +63,30 @@
 }
 
 .help-page__card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 10px;
-  padding: 18px clamp(12px, 5cqw, 22px) 18px clamp(12px, 5cqw, 21px);
-  border: 1px solid #d3ab9e;
+  padding: 18px 22px 18px 21px;
+  border: 1px solid hsl(14.717deg 37.5887% 96%);
   border-radius: 26px;
   background: #fff;
 }
 
 .help-page__card h2 {
   color: #9f8170;
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .help-page__card[data-urgent] {
-  min-height: 111px;
-  padding-block: 19px 21px;
-  background: #fdeae5;
-}
-
-.help-page__card[data-urgent] h2 {
-  color: #000;
-  font-weight: 700;
+  border-color: hsl(10deg 92.3077% 90%);
+  background: hsl(10deg 92.3077% 94.902%);
 }
 
 .help-page__row {
   display: flex;
+  align-self: stretch;
   flex-wrap: wrap;
   align-items: end;
   justify-content: space-between;
@@ -87,7 +94,8 @@
 }
 
 .help-page__row h3 {
-  font-size: 15px;
+  color: hsl(21.7021deg 12.1789% 16%);
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -98,22 +106,58 @@
 }
 
 .help-page__action {
+  position: relative;
   display: inline-flex;
   width: 114px;
-  height: 26px;
   align-items: center;
   justify-content: center;
   gap: 5px;
   margin-left: auto;
   padding: 5px 12px 6px 13px;
-  border: 1px solid #d3ab9e;
+  border: 1px solid hsl(0deg 10.6013% 94.0974%);
   border-radius: 13px;
-  color: inherit;
-  font-size: 12px;
+  background: hsl(0deg 33.6895% 96.721%);
+  color: hsl(0deg 29.4118% 55%);
+  font: 400 11px Pretendard, system-ui, sans-serif;
+  text-align: center;
   text-decoration: none;
   white-space: nowrap;
 }
 
+.help-page__action svg {
+  position: absolute;
+  inset-inline-end: 11px;
+  color: #d5b2b2;
+}
+
+.help-page__action[data-phone='false'] .help-page__action-label {
+  margin-inline-end: 12px;
+}
+
+.help-page__card:first-child .help-page__action-label {
+  transform: translateX(1px);
+}
+
+.help-page__action[data-phone='true'] {
+  flex: 1 0 0;
+  min-width: 94px;
+  max-width: 105px;
+  gap: 18px;
+}
+
 .help-page__card[data-urgent] .help-page__action {
-  background: #d3ab9e;
+  background: hsl(22deg 0% 99%);
+  color: #f96a6a;
+}
+
+.help-page__phone-icon {
+  width: 15px;
+  height: 15px;
+  color: #d5b2b2;
+  background: currentColor;
+  mask: url('../../assets/icon/call.png') center / contain no-repeat;
+}
+
+.help-page__card[data-urgent] .help-page__phone-icon {
+  color: inherit;
 }

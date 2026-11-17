@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import ChatCalendar from './ChatCalendar'
 import calendar from '../../assets/icon/calendar.png'
+import profile from '../../assets/icon/profile.png'
 import sheep from '../../assets/image/original_sheep.png'
 import '../../styles/chat/ChatPage.css'
 
@@ -8,11 +9,7 @@ function Message({ children, fromUser = false }: { children: ReactNode; fromUser
   return (
     <li className={fromUser ? 'chat-row chat-row--user' : 'chat-row'}>
       {fromUser ? (
-        <svg className="chat-avatar" viewBox="0 0 32 32" role="img" aria-label="나">
-          <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" strokeWidth="2" />
-          <circle cx="16" cy="12" r="5" fill="currentColor" />
-          <path d="M6.5 26a9.5 9.5 0 0 1 19 0 14 14 0 0 1-19 0Z" fill="currentColor" />
-        </svg>
+        <img className="chat-avatar" src={profile} alt="나" />
       ) : (
         <img className="chat-avatar" src={sheep} alt="소미" />
       )}

@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
-import check from '../../assets/icon/check.png'
-import checkDone from '../../assets/icon/check_done.png'
 import clock from '../../assets/icon/clock.png'
 import heart from '../../assets/icon/heart.png'
-import lock from '../../assets/icon/lock.png'
 import pen from '../../assets/icon/pen.png'
+import completedSheep from '../../assets/image/checkin_sheeep.png'
 import sheep from '../../assets/image/sheep_3.png'
 import step1 from '../../assets/image/routine_step1.png'
 import step2 from '../../assets/image/routine_step2.png'
@@ -170,44 +168,48 @@ export default function RoutinePage({ onHome }: { onHome: (allCompleted: boolean
           </>}
         </span>
         {locked ? (
-          <img src={lock} alt="잠김" width="16" height="20" />
+          <span className="routine-lock" role="img" aria-label="잠김" />
         ) : (
-          <img src={done ? checkDone : check} alt={done ? '완료' : '미완료'} width="18" height="18" />
+          <span className="routine-checkbox" role="img" aria-label={done ? '완료' : '미완료'} />
         )}
       </button>
     )
   }
 
+  const allCompleted = activities.every(({ id }) => completed.includes(id))
+  const week = weekdays.map((weekday, index) => {
+    const date = new Date(today.getFullYear(), today.getMonth(), monday + index)
+    const key = dateKey(date)
+    const count = activities.filter(({ id }) => progress[key]?.includes(id)).length
+    return { weekday, date, key, count }
+  })
+  const completedDays = week.filter(({ date, count }) => date <= today && count === activities.length).length
+
   return (
-    <main className="routine-page" key="overview">
+    <main className="routine-page routine-page--overview" key="overview">
       <header className="routine-intro">
         <h1>오늘은 조금 덜어내 볼까요?</h1>
         <p>지금 나에게 필요한 작은 쉼을 선택하세요</p>
       </header>
 
       <ol className="routine-week" aria-label="이번 주 루틴 완료 현황">
-        {weekdays.map((weekday, index) => {
-          const date = new Date(today.getFullYear(), today.getMonth(), monday + index)
-          const key = dateKey(date)
-          const count = activities.filter(({ id }) => progress[key]?.includes(id)).length
-          return (
-            <li key={weekday} aria-current={key === todayKey ? 'date' : undefined} aria-label={`${date.getDate()}일 ${weekday}요일, ${activities.length}개 중 ${count}개 완료`}>
-              <span className="routine-day" style={count ? {
-                backgroundColor: `hsl(10.5495deg 86.6667% 79.4118% / ${count / activities.length})`,
-                color: '#fff',
-              } : undefined}>{date.getDate()}</span>
-              <span>{weekday}</span>
-            </li>
-          )
-        })}
+        {week.map(({ weekday, date, key, count }) => (
+          <li key={weekday} aria-current={key === todayKey ? 'date' : undefined} aria-label={`${date.getDate()}일 ${weekday}요일, ${activities.length}개 중 ${count}개 완료`}>
+            <span className="routine-day" style={count > 0 && key !== todayKey ? {
+              backgroundColor: `hsl(10.5495deg 86.6667% 79.4118% / ${count / activities.length})`,
+              color: '#fff',
+            } : undefined}>{date.getDate()}</span>
+            <span className="routine-weekday" data-has-progress={count > 0}>{weekday}</span>
+          </li>
+        ))}
       </ol>
 
       <section className="routine-status" aria-label="오늘의 상태">
-        <div className="routine-sheep"><img src={sheep} alt="" width="44" height="51" /></div>
+        <div className="routine-sheep"><img src={allCompleted ? completedSheep : sheep} alt="" width="44" height="51" /></div>
         <div className="routine-status-copy">
           <div className="routine-status-label"><span>오늘의 상태</span><span>2단계</span></div>
-          <strong>조금 지쳐있는 상태예요.</strong>
-          <p>가벼운 회복 루틴을 추천해요</p>
+          <strong>{allCompleted ? '오늘 한 겹 덜어냈어요' : '조금 지쳐있는 상태예요.'}</strong>
+          <p>{allCompleted ? `숨 고르기 완료 · 이번 주 ${completedDays}번째` : '가벼운 회복 루틴을 추천해요'}</p>
         </div>
       </section>
 

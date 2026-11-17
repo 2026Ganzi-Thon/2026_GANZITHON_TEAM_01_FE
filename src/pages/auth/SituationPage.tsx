@@ -19,9 +19,11 @@ export default function SituationPage({ step, value, onChange, onBack, onSkip, o
     <main className="welcome situation" aria-labelledby="situation-title">
       <header className="situation__header">
         <div className="situation__navigation">
-          <button type="button" onClick={onBack}><span aria-hidden="true">‹</span> 이전</button>
+          <button className="introduction__back" type="button" onClick={onBack}>
+            <span aria-hidden="true">‹</span> 이전
+          </button>
           <span aria-label={`${profileSteps.length}단계 중 ${step + 1}단계`}>{step + 1} / {profileSteps.length}</span>
-          <button type="button" onClick={onSkip}>건너뛰기</button>
+          <button className="situation__skip" type="button" onClick={onSkip}>건너뛰기</button>
         </div>
         <div className="situation__progress" aria-hidden="true">
           {profileSteps.map(({ label }, index) => <span key={label} data-current={index === step ? '' : undefined} />)}

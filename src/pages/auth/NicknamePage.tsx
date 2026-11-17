@@ -18,7 +18,7 @@ function NicknamePage({ nickname, onChange, onBack, onContinue }: NicknamePagePr
         }}
       >
         <button className="introduction__back" type="button" onClick={onBack}>
-          <span aria-hidden="true">‹</span> 이전
+          <span aria-hidden="true">‹</span>  이전
         </button>
         <section className="nickname__content">
           <h1 id="nickname-title">어떤 이름으로 불러 드릴까요?</h1>

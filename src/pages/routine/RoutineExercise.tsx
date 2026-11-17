@@ -48,7 +48,7 @@ export default function RoutineExercise({ exercise, index, count, onBack, onPrev
         </div>
       </div>
       <div className="routine-exercise__actions">
-        {onPrevious && <button type="button" onClick={() => onPrevious(finished)}>이전</button>}
+        {onPrevious && <button type="button" onClick={() => onPrevious(finished)}> 이전</button>}
         <button type="button" disabled={!finished} onClick={onNext}>{index === count - 1 ? '종료' : '다음'}</button>
       </div>
     </main>

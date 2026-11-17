@@ -18,19 +18,14 @@
   font: 500 13px/19px 'Noto Sans KR', Pretendard, sans-serif;
 }
 
-.situation__navigation button {
-  justify-self: start;
-  padding: 4px 10px;
+.situation__skip {
+  justify-self: end;
+  padding: 4px 0;
   border: 0;
   background: transparent;
   color: inherit;
-  font: 700 15px/22px 'Noto Sans KR', Pretendard, sans-serif;
+  font: 400 15px/22px 'Noto Sans KR', Pretendard, sans-serif;
   cursor: pointer;
-}
-
-.situation__navigation button:last-child {
-  justify-self: end;
-  font-weight: 400;
 }
 
 .situation__progress {
@@ -72,18 +67,20 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 48px;
-  padding-inline: 15px;
-  border: 1px solid #9f8170;
+  width: 100%;
+  height: 48px;
+  padding-left: 15px;
+  border: 1px solid hsl(18deg 38.4615% 94.902%);
   border-radius: 16px;
-  background: #fff;
+  background: #fffefb;
   color: #3d2c28;
-  font: 500 15px/22px 'Noto Sans KR', Pretendard, sans-serif;
+  font: 400 15px/22px Pretendard, sans-serif;
   cursor: pointer;
 }
 
 .situation__option:has(input:checked) {
-  background: #eac9c1;
+  border-color: hsl(10.2857deg 85.3659% 90%);
+  background: hsl(10.5495deg 86.6667% 95%);
 }
 
 .situation__option:has(input:focus-visible) {

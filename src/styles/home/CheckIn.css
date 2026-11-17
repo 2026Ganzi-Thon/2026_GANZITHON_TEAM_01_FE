@@ -85,7 +85,7 @@
 }
 
 .check-in__options button[aria-pressed='true'] {
-  background: var(--check-in-pink);
+  background: #ffe2db;
 }
 
 .check-in__actions {

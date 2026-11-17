@@ -22,11 +22,11 @@ export default function MyPage() {
 
   return (
     <main className="my-page">
-      <h1>나</h1>
+      <h1>마이</h1>
 
       <section className="my-page__card my-page__records" aria-labelledby="my-records-title">
         <header className="my-page__records-header">
-          <h2 id="my-records-title">나의 기록</h2>
+          <h2 id="my-records-title">나의 털 무게</h2>
           <div className="my-page__period" role="group" aria-label="기록 기간">
             {([7, 30] as const).map((days) => (
               <button key={days} type="button" aria-pressed={period === days} onClick={() => setPeriod(days)}>
@@ -45,7 +45,10 @@ export default function MyPage() {
                 </div>
               ))}
             </div>
-            <p className="my-page__note">털이 가장 무거웠던 날은 목요일이에요. 그날 수면 시간이 평소보다 2시간 짧았어요.</p>
+            <div className="my-page__chart-note">
+              <p>털이 가장 무거웠던 날은 목요일이에요</p>
+              <p>이날 잠이 평소보다 2시간 짧았어요</p>
+            </div>
           </>
         ) : (
           <p className="my-page__note my-page__empty">30일 기록이 아직 없어요.</p>
