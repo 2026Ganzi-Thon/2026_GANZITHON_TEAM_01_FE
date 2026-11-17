@@ -1,6 +1,6 @@
 .chat-page {
-  --chat-gray: #e6e5eb;
-  --chat-user-bubble: #f3f3f3;
+  --chat-gray: #f3f3f3;
+  --chat-user-bubble: #c2aea3;
   --chat-accent: hsl(10.5495deg 86.6667% 79.4118%);
   --chat-gutter: max(4.1%, env(safe-area-inset-left), env(safe-area-inset-right));
   display: grid;
@@ -112,7 +112,8 @@
   left: 0;
   width: 20px;
   height: 14px;
-  background: url('../../assets/image/gray_chat_tail.png') center / contain no-repeat;
+  background: var(--chat-gray);
+  mask: url('../../assets/image/gray_chat_tail.png') center / contain no-repeat;
   content: '';
   pointer-events: none;
 }
@@ -125,6 +126,7 @@
   min-height: 54px;
   padding-inline: 17px;
   background: var(--chat-user-bubble);
+  color: #fff;
   line-height: 12px;
 }
 
