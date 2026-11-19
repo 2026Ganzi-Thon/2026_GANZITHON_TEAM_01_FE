@@ -8,7 +8,8 @@ import miniSheep from '../../assets/image/sheep_mini.png'
 import speechBubble from '../../assets/image/speech_bubble.png'
 import { CheckIn, CheckInComplete } from './CheckIn'
 import { buildCheckInRequest, checkInSteps, restoreCheckInAnswers } from './checkInQuestions'
-import { readCheckInActivity, saveCheckInActivity, todayCheckInDate } from './checkInActivity'
+import { readCheckInActivity, saveCheckInActivity } from './checkInActivity'
+import { todayInSeoul } from '../../serviceDate'
 import { getCheckIn, submitCheckIn } from '../../api/checkIns'
 import { ApiError } from '../../api/client'
 import { saveRequiredConsents } from '../../api/consents'
@@ -46,7 +47,7 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
   const [refreshCount, setRefreshCount] = useState(0)
   const pendingRequest = useRef<{ body: string; key: string } | null>(null)
   const complete = step === checkInSteps.length
-  const checkInDate = todayCheckInDate()
+  const checkInDate = todayInSeoul()
   const shouldLoadCheckIn = current === 0 && !needsConsent && loadedCheckInDate !== checkInDate
   const todayData = today && 'data' in today ? today.data : null
   const weekData = week && 'data' in week ? week.data : null
