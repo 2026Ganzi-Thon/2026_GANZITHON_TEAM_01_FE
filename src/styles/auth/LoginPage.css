@@ -1,10 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400&display=swap');
+
 .login {
   height: 100%;
   overflow-y: auto;
-  padding: max(104px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+  padding: max(62px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
   background: #fdf9fc;
   font-family: Pretendard, system-ui, sans-serif;
   text-align: center;
+}
+
+.login__signup {
+  display: block;
+  margin: 0 0 12px auto;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: #725c53;
+  font: normal 400 15px/22px 'Noto Sans KR', Pretendard, system-ui, sans-serif;
+  cursor: pointer;
 }
 
 .login h1 {

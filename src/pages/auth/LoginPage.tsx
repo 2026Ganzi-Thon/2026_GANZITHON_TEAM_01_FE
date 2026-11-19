@@ -3,7 +3,7 @@ import { login } from '../../api/auth'
 import { ApiError } from '../../api/client'
 import '../../styles/auth/LoginPage.css'
 
-function LoginPage({ onLogin }: { onLogin: (loginId: string) => Promise<void> }) {
+function LoginPage({ onLogin, onSignup }: { onLogin: (loginId: string) => Promise<void>; onSignup: () => void }) {
   const [notice, setNotice] = useState('')
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -38,6 +38,7 @@ function LoginPage({ onLogin }: { onLogin: (loginId: string) => Promise<void> })
 
   return (
     <main className="login" aria-labelledby="login-title">
+      <button className="login__signup" type="button" disabled={isSubmitting} onClick={onSignup}>회원가입</button>
       <h1 id="login-title">LOGIN</h1>
       <form
         className="login__form"

@@ -10,6 +10,7 @@ export type ChatMessage = {
   messageType: 'TEXT' | 'WEEK_SUMMARY' | 'ROUTINE_RECOMMENDATION'
   content: string
   payload: {
+    routineId?: string
     title?: string | null
     body?: string | null
     reason?: string

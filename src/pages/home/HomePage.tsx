@@ -5,7 +5,6 @@ import levelTwoSheep from '../../assets/image/sheep_2.png'
 import levelThreeSheep from '../../assets/image/sheep_3.png'
 import levelFourSheep from '../../assets/image/sheep_4.png'
 import miniSheep from '../../assets/image/sheep_mini.png'
-import speechBubble from '../../assets/image/speech_bubble.png'
 import { CheckIn, CheckInComplete } from './CheckIn'
 import { buildCheckInRequest, checkInSteps, restoreCheckInAnswers } from './checkInQuestions'
 import { activityRanges, readCheckInActivity, saveCheckInActivity } from './checkInActivity'
@@ -29,10 +28,15 @@ const sheepImages: Partial<Record<string, string>> = {
 
 type HomeResult<T> = { data: T } | { error: unknown } | null
 
-function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: () => void }) {
+function HomePage({ loginId, initialCheckInDate, onOpenChat, onOpenRoutine }: {
+  loginId: string
+  initialCheckInDate?: string
+  onOpenChat: () => void
+  onOpenRoutine: () => void
+}) {
   const slidesRef = useRef<HTMLDivElement>(null)
   const backgroundRef = useRef<HTMLDivElement>(null)
-  const [current, setCurrent] = useState(1)
+  const [current, setCurrent] = useState(initialCheckInDate ? 0 : 1)
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<string[]>([])
   const [walkingAnswer, setWalkingAnswer] = useState('')
@@ -57,8 +61,11 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
 
   useLayoutEffect(() => {
     const slides = slidesRef.current
-    if (slides) slides.scrollLeft = slides.clientWidth
-  }, [])
+    if (!slides) return
+    const offset = initialCheckInDate ? 0 : slides.clientWidth
+    slides.scrollLeft = offset
+    backgroundRef.current?.style.setProperty('--home-scroll', `${offset}px`)
+  }, [initialCheckInDate])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -78,7 +85,7 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
     if (!shouldLoadCheckIn) return
     const controller = new AbortController()
     void Promise.all([
-      getCheckIn(checkInDate, controller.signal),
+      initialCheckInDate === checkInDate ? null : getCheckIn(checkInDate, controller.signal),
       getManualSignals(checkInDate, controller.signal).catch(() => null),
     ]).then(([record, signals]) => {
       if (controller.signal.aborted) return
@@ -101,7 +108,7 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
       }
     })
     return () => controller.abort()
-  }, [checkInDate, checkInRetry, loginId, shouldLoadCheckIn])
+  }, [checkInDate, checkInRetry, initialCheckInDate, loginId, shouldLoadCheckIn])
 
   function refreshHome() {
     setToday(null)
@@ -252,7 +259,7 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
             />
           )}
         </section>
-        <section className="home__panel" aria-label={panels[1]}>
+        <section className="home__panel" aria-label={panels[1]} inert={current !== 1}>
           <div className="sheep-progress" role="img" aria-label={sheepLevel === null ? '오늘의 양 레벨 기록 없음' : `오늘의 양 레벨 ${sheepLevel}단계`}>
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img src={miniSheep} width="66" height="49" alt="" />
@@ -268,8 +275,11 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
           {todayData?.isStale && <p className="home__level-status" role="status">이전 기록 기준</p>}
 
           <div className="home__bubble">
-            <img src={speechBubble} width="206" height="53" alt="" />
             <p>오늘 있었던 일, 나한테 들려줄래?</p>
+            <div className="home__bubble-actions">
+              <button type="button" onClick={onOpenChat}>응,들려줄게!</button>
+              <button type="button" onClick={onOpenRoutine}>오늘은 쉴래</button>
+            </div>
           </div>
           <img
             className="home__sheep"

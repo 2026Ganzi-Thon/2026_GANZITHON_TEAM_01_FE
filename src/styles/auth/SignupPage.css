@@ -12,6 +12,21 @@
   min-height: 100%;
 }
 
+.signup__actions {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.signup__login {
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: hsl(0deg 0% 36.4201%);
+  font: normal 500 15px/29.5px Pretendard, system-ui, sans-serif;
+  cursor: pointer;
+}
+
 .signup__content {
   width: min(336.932px, 100%);
   margin-inline: auto;

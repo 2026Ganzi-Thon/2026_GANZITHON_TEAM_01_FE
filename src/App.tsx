@@ -15,7 +15,12 @@ import SituationPage from './pages/auth/SituationPage'
 import WelcomePage from './pages/onboarding/WelcomePage'
 import RoutinePage from './pages/routine/RoutinePage'
 import { profileSteps } from './situationOptions'
+import { getCheckIn } from './api/checkIns'
 import { saveRequiredConsents } from './api/consents'
+import type { RoutineTarget } from './api/routines'
+import { todayInSeoul } from './serviceDate'
+
+type Navigation = { screen: Screen; initialRoutine?: RoutineTarget; initialCheckInDate?: string }
 
 function App() {
   const [onboarding, setOnboarding] = useState<'welcome' | 'login' | 'introduction' | 'consent' | 'signup' | 'nickname' | 'situation' | 'summary' | 'calendar' | 'complete'>('welcome')
@@ -24,7 +29,7 @@ function App() {
   const [activeLoginId, setActiveLoginId] = useState('')
   const [profileStep, setProfileStep] = useState(0)
   const [profileAnswers, setProfileAnswers] = useState<string[][]>(() => profileSteps.map(() => []))
-  const [screen, setScreen] = useState<Screen>('home')
+  const [{ screen, initialRoutine, initialCheckInDate }, setNavigation] = useState<Navigation>({ screen: 'home' })
   const [showHelp, setShowHelp] = useState(() => window.location.hash === '#help')
 
   useEffect(() => {
@@ -43,6 +48,14 @@ function App() {
     setShowHelp(false)
   }
 
+  function setScreen(nextScreen: Screen) {
+    setNavigation((current) => current.screen === nextScreen && !showHelp ? current : { screen: nextScreen })
+  }
+
+  function openRecommendedRoutine(initialRoutine: RoutineTarget) {
+    setNavigation((current) => current.screen === 'chat' ? { screen: 'routine', initialRoutine } : current)
+  }
+
   function updateProfileAnswer(step: number, answer: string[]) {
     setProfileAnswers((current) => current.map((value, index) => index === step ? answer : value))
   }
@@ -57,9 +70,11 @@ function App() {
       await saveRequiredConsents()
       setPendingConsentLoginId(undefined)
     }
+    const date = todayInSeoul()
+    const checkIn = await getCheckIn(date, AbortSignal.timeout(8_000)).catch(() => undefined)
     setActiveLoginId(loginId)
     closeHelp()
-    setScreen('home')
+    setNavigation({ screen: 'home', initialCheckInDate: checkIn === null ? date : undefined })
     setOnboarding('complete')
   }
 
@@ -69,7 +84,7 @@ function App() {
         {onboarding === 'welcome' ? (
           <WelcomePage onContinue={() => setOnboarding('introduction')} onLogin={() => setOnboarding('login')} />
         ) : onboarding === 'login' ? (
-          <LoginPage onLogin={openHome} />
+          <LoginPage onLogin={openHome} onSignup={() => setOnboarding('consent')} />
         ) : onboarding === 'introduction' ? (
           <IntroductionPage
             onBack={() => setOnboarding('welcome')}
@@ -78,10 +93,13 @@ function App() {
         ) : onboarding === 'consent' ? (
           <ConsentPage onContinue={() => setOnboarding('signup')} />
         ) : onboarding === 'signup' ? (
-          <SignupPage onComplete={(loginId) => {
-            setPendingConsentLoginId(loginId)
-            setOnboarding('nickname')
-          }} />
+          <SignupPage
+            onLogin={() => setOnboarding('login')}
+            onComplete={(loginId) => {
+              setPendingConsentLoginId(loginId)
+              setOnboarding('nickname')
+            }}
+          />
         ) : onboarding === 'nickname' ? (
           <NicknamePage
             nickname={nickname}
@@ -131,11 +149,16 @@ function App() {
         ) : screen === 'my' ? (
           <MyPage />
         ) : screen === 'chat' ? (
-          <ChatPage onOpenRoutine={() => setScreen('routine')} />
+          <ChatPage onOpenRoutine={openRecommendedRoutine} />
         ) : screen === 'routine' ? (
-          <RoutinePage loginId={activeLoginId} onHome={() => setScreen('home')} />
+          <RoutinePage loginId={activeLoginId} initialRoutine={initialRoutine} onHome={() => setScreen('home')} />
         ) : (
-          <HomePage loginId={activeLoginId} onOpenRoutine={() => setScreen('routine')} />
+          <HomePage
+            loginId={activeLoginId}
+            initialCheckInDate={initialCheckInDate}
+            onOpenChat={() => setScreen('chat')}
+            onOpenRoutine={() => setScreen('routine')}
+          />
         )}
         <BottomNavigation screen={showHelp ? 'my' : screen} onSelect={(nextScreen) => {
           closeHelp()
