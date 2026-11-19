@@ -54,6 +54,7 @@ function readProgress(): Record<string, string[]> {
 
 export default function RoutinePage({ onHome }: { onHome: (allCompleted: boolean) => void }) {
   const [progress, setProgress] = useState(readProgress)
+  const [soundEnabled, setSoundEnabled] = useState(true)
   const [active, setActive] = useState<{ activity: (typeof activities)[number]; day: string } | null>(null)
   const [mood, setMood] = useState('')
   const [journal, setJournal] = useState('')
@@ -104,6 +105,8 @@ export default function RoutinePage({ onHome }: { onHome: (allCompleted: boolean
         exercise={exercise}
         index={exerciseIndex}
         count={recommended.length}
+        soundEnabled={soundEnabled}
+        onSoundChange={setSoundEnabled}
         onBack={(finished) => finishActivity(undefined, finished ? [exercise.id] : [])}
         onPrevious={exerciseIndex > 0 ? (finished) => finishActivity(recommended[exerciseIndex - 1], finished ? [exercise.id] : []) : undefined}
         onNext={() => finishActivity(recommended[exerciseIndex + 1])}

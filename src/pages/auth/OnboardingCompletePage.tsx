@@ -4,10 +4,10 @@ import '../../styles/auth/OnboardingCompletePage.css'
 type OnboardingCompletePageProps = {
   nickname: string
   onBack: () => void
-  onHome: () => void
+  onContinue: () => void
 }
 
-export default function OnboardingCompletePage({ nickname, onBack, onHome }: OnboardingCompletePageProps) {
+export default function OnboardingCompletePage({ nickname, onBack, onContinue }: OnboardingCompletePageProps) {
   const lastSyllable = nickname.normalize('NFC').slice(-1).charCodeAt(0)
   const hasFinalConsonant = lastSyllable >= 0xac00 && lastSyllable <= 0xd7a3 && (lastSyllable - 0xac00) % 28 !== 0
 
@@ -24,7 +24,7 @@ export default function OnboardingCompletePage({ nickname, onBack, onHome }: Onb
         <p>앞으로 천천히 친해져요.</p>
         <p className="onboarding-complete__note">답변은 마이페이지에서 언제든 바꿀 수 있어요</p>
       </div>
-      <button className="onboarding-continue" type="button" onClick={onHome}>홈으로</button>
+      <button className="onboarding-continue" type="button" onClick={onContinue}>다음</button>
     </main>
   )
 }

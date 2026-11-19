@@ -29,17 +29,25 @@
   background-size: cover;
 }
 
-.routine-exercise__back {
+.routine-exercise__controls {
+  display: flex;
+  justify-content: space-between;
+  flex: none;
+}
+
+.routine-exercise__controls button {
   display: grid;
   place-items: center;
-  align-self: flex-start;
-  flex: none;
   width: 44px;
   height: 44px;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.routine-exercise__controls img {
+  object-fit: contain;
 }
 
 .routine-exercise__back span {

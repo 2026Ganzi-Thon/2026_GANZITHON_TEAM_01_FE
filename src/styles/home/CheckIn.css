@@ -27,7 +27,8 @@
 
 .check-in__progress {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 6px;
   max-width: 330px;
   margin: calc(22 * var(--art-unit)) auto 0;
@@ -86,6 +87,25 @@
 
 .check-in__options button[aria-pressed='true'] {
   background: #ffe2db;
+}
+
+.check-in--daily-activity .check-in__questions {
+  display: grid;
+  gap: clamp(32px, calc(66 * var(--art-unit)), 66px);
+  margin-top: clamp(24px, calc(44 * var(--art-unit)), 44px);
+}
+
+.check-in--daily-activity .check-in__question {
+  font-size: 20px;
+}
+
+.check-in--daily-activity .check-in__description {
+  margin: 6px 0 16px;
+}
+
+.check-in--daily-activity .check-in__options {
+  height: auto;
+  grid-template-rows: repeat(2, 40px);
 }
 
 .check-in__actions {
