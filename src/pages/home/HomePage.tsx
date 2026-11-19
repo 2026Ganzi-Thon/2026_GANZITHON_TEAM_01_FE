@@ -1,27 +1,108 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import originalSheep from '../../assets/image/original_sheep.png'
 import levelOneSheep from '../../assets/image/sheep_1.png'
+import levelTwoSheep from '../../assets/image/sheep_2.png'
+import levelThreeSheep from '../../assets/image/sheep_3.png'
+import levelFourSheep from '../../assets/image/sheep_4.png'
 import miniSheep from '../../assets/image/sheep_mini.png'
 import speechBubble from '../../assets/image/speech_bubble.png'
-import { CheckIn, CheckInComplete, checkInSteps } from './CheckIn'
+import { CheckIn, CheckInComplete } from './CheckIn'
+import { buildCheckInRequest, checkInSteps, restoreCheckInAnswers } from './checkInQuestions'
+import { readCheckInActivity, saveCheckInActivity, todayCheckInDate } from './checkInActivity'
+import { getCheckIn, submitCheckIn } from '../../api/checkIns'
+import { ApiError } from '../../api/client'
+import { saveRequiredConsents } from '../../api/consents'
+import { getTodayState, getWeeklyInsights, type TodayState, type WeeklyInsights } from '../../api/home'
+import ConsentPage from '../auth/ConsentPage'
 import WeeklyChanges from './WeeklyChanges'
 import '../../styles/home/HomePage.css'
 
 const panels = ['하루 체크인', '홈', '이번 주 변화']
+const sheepImages: Partial<Record<number, string>> = {
+  1: levelOneSheep,
+  2: levelTwoSheep,
+  3: levelThreeSheep,
+  4: levelFourSheep,
+}
 
-function HomePage({ sheepLevel, onOpenRoutine }: { sheepLevel: 1 | 2; onOpenRoutine: () => void }) {
+type HomeResult<T> = { data: T } | { error: unknown } | null
+
+function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: () => void }) {
   const slidesRef = useRef<HTMLDivElement>(null)
   const backgroundRef = useRef<HTMLDivElement>(null)
   const [current, setCurrent] = useState(1)
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<string[]>([])
   const [walkingAnswer, setWalkingAnswer] = useState('')
+  const [loadedCheckInDate, setLoadedCheckInDate] = useState('')
+  const [checkInLoadError, setCheckInLoadError] = useState('')
+  const [checkInRetry, setCheckInRetry] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [needsConsent, setNeedsConsent] = useState(false)
+  const [skipped, setSkipped] = useState(false)
+  const [today, setToday] = useState<HomeResult<TodayState>>(null)
+  const [week, setWeek] = useState<HomeResult<WeeklyInsights>>(null)
+  const [refreshCount, setRefreshCount] = useState(0)
+  const pendingRequest = useRef<{ body: string; key: string } | null>(null)
   const complete = step === checkInSteps.length
+  const checkInDate = todayCheckInDate()
+  const shouldLoadCheckIn = current === 0 && !needsConsent && loadedCheckInDate !== checkInDate
+  const todayData = today && 'data' in today ? today.data : null
+  const weekData = week && 'data' in week ? week.data : null
+  const sheepLevel = todayData?.level ?? null
+  const sheepImage = (sheepLevel === null ? undefined : sheepImages[sheepLevel]) ?? originalSheep
+  const bubbleText = todayData?.bubbleText?.trim().replace(/보여요\.\s*(?=\S)/g, '보여요.\n')
 
   useLayoutEffect(() => {
     const slides = slidesRef.current
     if (slides) slides.scrollLeft = slides.clientWidth
   }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const { signal } = controller
+    void getTodayState(signal).then(
+      (data) => { if (!signal.aborted) setToday({ data }) },
+      (error: unknown) => { if (!signal.aborted) setToday({ error }) },
+    )
+    void getWeeklyInsights(signal).then(
+      (data) => { if (!signal.aborted) setWeek({ data }) },
+      (error: unknown) => { if (!signal.aborted) setWeek({ error }) },
+    )
+    return () => controller.abort()
+  }, [refreshCount])
+
+  useEffect(() => {
+    if (!shouldLoadCheckIn) return
+    const controller = new AbortController()
+    void getCheckIn(checkInDate, controller.signal).then((record) => {
+      if (controller.signal.aborted) return
+      const restored = restoreCheckInAnswers(record)
+      const activity = readCheckInActivity(loginId, checkInDate)
+      restored[checkInSteps.length - 1] = activity.sleep
+      pendingRequest.current = null
+      setStep(0)
+      setAnswers(restored)
+      setWalkingAnswer(activity.walking)
+      setLoadedCheckInDate(checkInDate)
+      setCheckInLoadError('')
+    }, (error: unknown) => {
+      if (controller.signal.aborted) return
+      if (error instanceof ApiError && error.code === 'CONSENT_REQUIRED') {
+        setNeedsConsent(true)
+      } else {
+        setCheckInLoadError(error instanceof ApiError ? error.message : '오늘 체크인을 불러오지 못했어요.')
+      }
+    })
+    return () => controller.abort()
+  }, [checkInDate, checkInRetry, loginId, shouldLoadCheckIn])
+
+  function refreshHome() {
+    setToday(null)
+    setWeek(null)
+    setRefreshCount((count) => count + 1)
+  }
 
   function goToPanel(index: number, immediate = false) {
     const slides = slidesRef.current
@@ -39,6 +120,82 @@ function HomePage({ sheepLevel, onOpenRoutine }: { sheepLevel: 1 | 2; onOpenRout
       updated[step] = answer
       return updated
     })
+  }
+
+  async function advanceCheckIn(skip = false) {
+    if (isSubmitting) return
+    setSubmitError('')
+
+    if (step < checkInSteps.length - 1) {
+      if (skip) selectAnswer('')
+      setStep(step + 1)
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const input = buildCheckInRequest(answers)
+      const body = JSON.stringify(input)
+      if (pendingRequest.current?.body !== body) {
+        pendingRequest.current = { body, key: crypto.randomUUID() }
+      }
+      const { status, localDate } = await submitCheckIn(input, pendingRequest.current.key)
+      pendingRequest.current = null
+      saveCheckInActivity(loginId, localDate, skip ? '' : answers[step], skip ? '' : walkingAnswer)
+      setLoadedCheckInDate(localDate)
+      if (skip) {
+        selectAnswer('')
+        setWalkingAnswer('')
+      }
+      setSkipped(status === 'SKIPPED')
+      setStep(checkInSteps.length)
+      refreshHome()
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'CONSENT_REQUIRED') {
+        setNeedsConsent(true)
+      } else {
+        setSubmitError(error instanceof Error && !(error instanceof TypeError)
+          ? error.message
+          : '서버에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function saveConsent() {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    setSubmitError('')
+    try {
+      await saveRequiredConsents()
+      setNeedsConsent(false)
+      refreshHome()
+    } catch (error) {
+      setSubmitError(error instanceof ApiError ? error.message : '필수 동의를 저장할 수 없어요. 다시 시도해 주세요.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function renderLoadStatus(result: HomeResult<unknown>, loadingMessage: string) {
+    if (!result) return <p role="status">{loadingMessage}</p>
+    if (!('error' in result)) return null
+
+    const error = result.error
+    const requiresConsent = error instanceof ApiError && error.code === 'CONSENT_REQUIRED'
+    return (
+      <>
+        <p role="status">{error instanceof ApiError ? error.message : '정보를 불러오지 못했어요.'}</p>
+        <button type="button" onClick={requiresConsent ? () => {
+          setSubmitError('')
+          setNeedsConsent(true)
+          goToPanel(0)
+        } : refreshHome}>
+          {requiresConsent ? '필수 동의 확인하기' : '다시 불러오기'}
+        </button>
+      </>
+    )
   }
 
   return (
@@ -61,46 +218,66 @@ function HomePage({ sheepLevel, onOpenRoutine }: { sheepLevel: 1 | 2; onOpenRout
         }}
       >
         <section className="home__panel home__panel--summary" aria-label={panels[0]} inert={current !== 0}>
-          {!complete && (
+          {needsConsent ? (
+            <ConsentPage embedded onContinue={saveConsent} isSubmitting={isSubmitting} error={submitError} />
+          ) : loadedCheckInDate !== checkInDate && !complete ? (
+            <div className="check-in">
+              <h1 className="check-in__title">하루 체크인</h1>
+              <p role="status">{checkInLoadError || '오늘 체크인을 불러오는 중이에요.'}</p>
+              {checkInLoadError && <button type="button" onClick={() => {
+                setCheckInLoadError('')
+                setCheckInRetry((count) => count + 1)
+              }}>다시 불러오기</button>}
+            </div>
+          ) : !complete && (
             <CheckIn
               step={step}
               answer={answers[step]}
               walkingAnswer={walkingAnswer}
               onSelect={selectAnswer}
               onSelectWalking={setWalkingAnswer}
-              onPrevious={() => setStep(step - 1)}
-              onNext={() => setStep(step + 1)}
-              onSkip={() => {
-                selectAnswer('')
-                if (step === checkInSteps.length - 1) setWalkingAnswer('')
-                setStep(step + 1)
+              onPrevious={() => {
+                setSubmitError('')
+                setStep(step - 1)
               }}
+              onNext={() => void advanceCheckIn()}
+              onSkip={() => void advanceCheckIn(true)}
+              isSubmitting={isSubmitting}
+              error={submitError}
             />
           )}
         </section>
         <section className="home__panel" aria-label={panels[1]}>
-          <div className="sheep-progress" role="img" aria-label={`${sheepLevel}단계`}>
+          <div className="sheep-progress" role="img" aria-label={sheepLevel === null ? '표시할 양 레벨 없음' : `오늘의 양 레벨 ${sheepLevel}단계`}>
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img src={miniSheep} width="66" height="49" alt="" />
-            <span className="sheep-progress__number">{sheepLevel}</span>
+            <span className="sheep-progress__number">{sheepLevel ?? '–'}</span>
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
           </div>
+          {!todayData && (
+            <div className="home__level-status">
+              {renderLoadStatus(today, '오늘의 양 레벨을 불러오는 중이에요.')}
+            </div>
+          )}
 
           <div className="home__bubble">
             <img src={speechBubble} width="206" height="53" alt="" />
-            <p>오늘 있었던 일, 나한테 들려줄래?</p>
+            <p>{bubbleText || '오늘 있었던 일, 나한테 들려줄래?'}</p>
           </div>
           <img
             className="home__sheep"
-            src={sheepLevel === 1 ? levelOneSheep : originalSheep}
-            width={sheepLevel === 1 ? 253 : 338}
-            height={sheepLevel === 1 ? 253 : 419}
+            src={sheepImage}
             alt="양"
           />
         </section>
         <section className="home__panel home__panel--summary" aria-label={panels[2]} inert={current !== 2}>
-          <WeeklyChanges onOpenRoutine={onOpenRoutine} />
+          <WeeklyChanges
+            data={weekData}
+            sheepImage={sheepImage}
+            loadStatus={renderLoadStatus(week, '이번 주 변화를 불러오는 중이에요.')}
+            onOpenRoutine={onOpenRoutine}
+          />
         </section>
       </div>
 
@@ -137,13 +314,12 @@ function HomePage({ sheepLevel, onOpenRoutine }: { sheepLevel: 1 | 2; onOpenRout
       </div>
       {complete && (
         <CheckInComplete
+          skipped={skipped}
           onPrevious={() => setStep(checkInSteps.length - 1)}
           onHome={() => {
             goToPanel(1, true)
             setCurrent(1)
             setStep(0)
-            setAnswers([])
-            setWalkingAnswer('')
           }}
         />
       )}

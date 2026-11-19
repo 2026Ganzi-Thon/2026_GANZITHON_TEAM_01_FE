@@ -2,7 +2,7 @@ import { useState, type SubmitEvent } from 'react'
 import { signup } from '../../api/auth'
 import '../../styles/auth/SignupPage.css'
 
-function SignupPage({ onComplete }: { onComplete: () => void }) {
+function SignupPage({ onComplete }: { onComplete: (loginId: string) => void }) {
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [showMismatch, setShowMismatch] = useState(false)
@@ -31,7 +31,7 @@ function SignupPage({ onComplete }: { onComplete: () => void }) {
     setIsSubmitting(true)
     try {
       await signup({ loginId, password, passwordConfirm: confirmation })
-      onComplete()
+      onComplete(loginId)
     } catch (error) {
       setSubmitError(error instanceof Error && !(error instanceof TypeError)
         ? error.message

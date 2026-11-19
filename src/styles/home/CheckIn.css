@@ -7,9 +7,15 @@
 }
 
 .check-in {
+  --check-in-sheep-height: clamp(74px, calc(146 * var(--art-unit)), 146px);
   width: min(100% - 48px, 342px);
   margin-inline: auto;
   padding-block: max(calc(74 * var(--art-unit)), calc(env(safe-area-inset-top) + 12px)) 6px;
+}
+
+.check-in__body {
+  display: flow-root;
+  min-height: calc(var(--check-in-sheep-height) + 54 * var(--art-unit) + 218px);
 }
 
 .check-in button,
@@ -47,7 +53,7 @@
 .check-in__sheep {
   display: block;
   width: clamp(57px, calc(113 * var(--art-unit)), 113px);
-  height: clamp(74px, calc(146 * var(--art-unit)), 146px);
+  height: var(--check-in-sheep-height);
   aspect-ratio: 113 / 146;
   object-fit: contain;
   margin: calc(29 * var(--art-unit)) auto calc(25 * var(--art-unit));
@@ -58,12 +64,14 @@
   color: var(--check-in-brown);
   font-size: 24px;
   font-weight: 700;
+  line-height: 29px;
 }
 
 .check-in__description {
   margin: 10px 0 16px;
   color: hsl(0deg 0% 30.6678%);
   font-size: 13px;
+  line-height: 16px;
 }
 
 .check-in__options {
@@ -91,21 +99,23 @@
 
 .check-in--daily-activity .check-in__questions {
   display: grid;
-  gap: clamp(32px, calc(66 * var(--art-unit)), 66px);
-  margin-top: clamp(24px, calc(44 * var(--art-unit)), 44px);
+  gap: clamp(20px, calc(48 * var(--art-unit)), 48px);
+  margin-top: clamp(16px, calc(42 * var(--art-unit)), 42px);
 }
 
 .check-in--daily-activity .check-in__question {
   font-size: 20px;
+  line-height: 24px;
 }
 
 .check-in--daily-activity .check-in__description {
-  margin: 6px 0 16px;
+  margin: 5px 0 10px;
 }
 
 .check-in--daily-activity .check-in__options {
   height: auto;
-  grid-template-rows: repeat(2, 40px);
+  grid-template-rows: repeat(2, clamp(32px, calc(40 * var(--art-unit)), 40px));
+  row-gap: 8px;
 }
 
 .check-in__actions {

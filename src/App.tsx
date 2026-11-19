@@ -15,14 +15,16 @@ import SituationPage from './pages/auth/SituationPage'
 import WelcomePage from './pages/onboarding/WelcomePage'
 import RoutinePage from './pages/routine/RoutinePage'
 import { profileSteps } from './situationOptions'
+import { saveRequiredConsents } from './api/consents'
 
 function App() {
   const [onboarding, setOnboarding] = useState<'welcome' | 'login' | 'introduction' | 'consent' | 'signup' | 'nickname' | 'situation' | 'summary' | 'calendar' | 'complete'>('welcome')
   const [nickname, setNickname] = useState('')
+  const [pendingConsentLoginId, setPendingConsentLoginId] = useState<string>()
+  const [activeLoginId, setActiveLoginId] = useState('')
   const [profileStep, setProfileStep] = useState(0)
   const [profileAnswers, setProfileAnswers] = useState<string[][]>(() => profileSteps.map(() => []))
   const [screen, setScreen] = useState<Screen>('home')
-  const [sheepLevel, setSheepLevel] = useState<1 | 2>(2)
   const [showHelp, setShowHelp] = useState(() => window.location.hash === '#help')
 
   useEffect(() => {
@@ -50,7 +52,12 @@ function App() {
     else setProfileStep(profileStep + 1)
   }
 
-  function openHome() {
+  async function openHome(loginId: string) {
+    if (pendingConsentLoginId === loginId) {
+      await saveRequiredConsents()
+      setPendingConsentLoginId(undefined)
+    }
+    setActiveLoginId(loginId)
     closeHelp()
     setScreen('home')
     setOnboarding('complete')
@@ -71,7 +78,10 @@ function App() {
         ) : onboarding === 'consent' ? (
           <ConsentPage onContinue={() => setOnboarding('signup')} />
         ) : onboarding === 'signup' ? (
-          <SignupPage onComplete={() => setOnboarding('nickname')} />
+          <SignupPage onComplete={(loginId) => {
+            setPendingConsentLoginId(loginId)
+            setOnboarding('nickname')
+          }} />
         ) : onboarding === 'nickname' ? (
           <NicknamePage
             nickname={nickname}
@@ -123,12 +133,9 @@ function App() {
         ) : screen === 'chat' ? (
           <ChatPage onOpenRoutine={() => setScreen('routine')} />
         ) : screen === 'routine' ? (
-          <RoutinePage onHome={(allCompleted) => {
-            if (allCompleted) setSheepLevel(1)
-            setScreen('home')
-          }} />
+          <RoutinePage onHome={() => setScreen('home')} />
         ) : (
-          <HomePage sheepLevel={sheepLevel} onOpenRoutine={() => setScreen('routine')} />
+          <HomePage loginId={activeLoginId} onOpenRoutine={() => setScreen('routine')} />
         )}
         <BottomNavigation screen={showHelp ? 'my' : screen} onSelect={(nextScreen) => {
           closeHelp()

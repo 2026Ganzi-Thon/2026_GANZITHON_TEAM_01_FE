@@ -20,6 +20,12 @@
   text-align: center;
 }
 
+.weekly-changes__status {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
 .weekly-changes__summary {
   display: grid;
   grid-template-columns: minmax(0, 165px) minmax(0, 1fr);
@@ -79,6 +85,9 @@
 
 .weekly-changes__chart {
   display: grid;
+  flex: none;
+  height: 93px;
+  margin-top: auto;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   align-items: end;
   gap: clamp(4px, 2cqw, 9px);
