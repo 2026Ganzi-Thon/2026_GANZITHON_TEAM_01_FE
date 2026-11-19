@@ -119,6 +119,7 @@
   color: hsl(18.1579deg 32.4786% 45.8824%);
   font: 700 clamp(10px, calc(11 * var(--art-unit)), 13px) Pretendard, 'Pretendard Variable', system-ui, sans-serif;
   text-align: center;
+  white-space: nowrap;
 }
 
 .home__level-status {

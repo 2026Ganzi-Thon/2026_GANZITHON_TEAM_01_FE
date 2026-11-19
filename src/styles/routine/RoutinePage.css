@@ -64,13 +64,19 @@
   list-style: none;
 }
 
-.routine-week li {
+.routine-week button {
   display: grid;
   gap: 5px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: hsl(0deg 0% 19.7472%);
+  font: inherit;
   font-size: 12px;
   font-weight: 500;
   text-align: center;
+  cursor: pointer;
 }
 
 .routine-day {
@@ -85,14 +91,27 @@
   transition: background-color 180ms ease;
 }
 
-.routine-week [aria-current='date'] .routine-day {
-  border: 1.4px solid hsl(15deg 100% 75.7024%);
-  background: #f8ad9d;
-  color: #fff;
+.routine-week [aria-pressed='true'] .routine-weekday {
+  font-weight: 700;
 }
 
-.routine-weekday[data-has-progress='true'] {
-  color: #e2c5bc;
+.routine-journal-history {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.routine-journal-history li {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: hsl(11.7073deg 92.2532% 97%);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.routine-journal-history p {
+  margin: 0;
 }
 
 .routine-status {

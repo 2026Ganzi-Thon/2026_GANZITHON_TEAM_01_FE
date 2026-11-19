@@ -1,5 +1,6 @@
 import { useState, type SubmitEvent } from 'react'
 import { login } from '../../api/auth'
+import { ApiError } from '../../api/client'
 import '../../styles/auth/LoginPage.css'
 
 function LoginPage({ onLogin }: { onLogin: (loginId: string) => Promise<void> }) {
@@ -25,7 +26,9 @@ function LoginPage({ onLogin }: { onLogin: (loginId: string) => Promise<void> })
       await login({ loginId, password: String(form.get('password') ?? '') })
       await onLogin(loginId)
     } catch (error) {
-      setSubmitError(error instanceof Error && !(error instanceof TypeError)
+      setSubmitError(error instanceof ApiError && error.code === 'INVALID_CREDENTIALS'
+        ? '아이디 또는 비밀번호가 맞지 않아요'
+        : error instanceof Error && !(error instanceof TypeError)
         ? error.message
         : '서버에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.')
     } finally {

@@ -133,7 +133,7 @@ function App() {
         ) : screen === 'chat' ? (
           <ChatPage onOpenRoutine={() => setScreen('routine')} />
         ) : screen === 'routine' ? (
-          <RoutinePage onHome={() => setScreen('home')} />
+          <RoutinePage loginId={activeLoginId} onHome={() => setScreen('home')} />
         ) : (
           <HomePage loginId={activeLoginId} onOpenRoutine={() => setScreen('routine')} />
         )}

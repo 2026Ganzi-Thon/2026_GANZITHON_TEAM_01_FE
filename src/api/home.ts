@@ -1,8 +1,12 @@
 import { readApi } from './client'
 
 export type TodayState = {
+  localDate: string
   level: number | null
+  assetKey: string | null
+  isStale: boolean
   bubbleText: string | null
+  statusText: string | null
 }
 
 export type WeeklyInsights = {

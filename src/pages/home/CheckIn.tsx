@@ -60,7 +60,9 @@ export function CheckIn({ step, answer, walkingAnswer, onSelect, onSelectWalking
           {isSubmitting ? '저장 중…' : isLastStep ? '완료' : '다음'}
         </button>
       </div>
-      <button className="check-in__skip" type="button" disabled={isSubmitting} onClick={onSkip}>건너뛰기</button>
+      <button className="check-in__skip" type="button" disabled={isSubmitting} onClick={onSkip}>
+        {isLastStep ? '건너뛰기' : '다음에 하기'}
+      </button>
       {error && <p className="check-in__description" role="alert">{error}</p>}
     </div>
   )

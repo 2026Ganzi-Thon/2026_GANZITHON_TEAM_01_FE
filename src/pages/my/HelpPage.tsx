@@ -1,38 +1,23 @@
+import { useEffect, useState } from 'react'
+import { getHelpResources, helpResourceHref, type HelpResource } from '../../api/helpResources'
+import { ApiError } from '../../api/client'
 import '../../styles/my/HelpPage.css'
 
-const resources = [
-  {
-    title: '마음이 지치고 힘들 때',
-    name: '정신 건강 복지 센터',
-    description: '심리 상담과 지역 전문기관 연계',
-    label: '기관 알아보기',
-    href: 'https://mentalhealth.go.kr/portal/health/fac/PotalHealthFacListTab1.do?tab1no=tab1no4',
-  },
-  {
-    title: '취업 준비가 막막할 때',
-    name: '대학 일자리 플러스 센터',
-    description: '진로 · 취업 상담 및 프로그램',
-    label: '고용 24',
-    href: 'https://www.work24.go.kr/cm/c/f/1100/selecSystInfo.do?systClId=SC00000194&systId=SI00000337',
-  },
-  {
-    title: '직장 문제로 힘들 때',
-    name: '고용 노동부 고객상담 센터',
-    description: '근로조건 · 임금 · 노동 관련 상담',
-    label: '1350',
-    href: 'tel:1350',
-  },
-  {
-    title: '지금 당장 도움이 필요할 때',
-    name: '자살예방상담전화',
-    description: '24시간 상담 가능',
-    label: '109',
-    href: 'tel:+82109?oai_link_source=model_response_hotline',
-    urgent: true,
-  },
-]
-
 export default function HelpPage({ onBack }: { onBack: () => void }) {
+  const [resources, setResources] = useState<HelpResource[]>()
+  const [error, setError] = useState('')
+  const [retry, setRetry] = useState(0)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void getHelpResources(controller.signal).then((items) => {
+      if (!controller.signal.aborted) setResources(items)
+    }, (error: unknown) => {
+      if (!controller.signal.aborted) setError(error instanceof ApiError ? error.message : '도움 받을 곳을 불러오지 못했어요.')
+    })
+    return () => controller.abort()
+  }, [retry])
+
   return (
     <main className="help-page">
       <header className="help-page__header">
@@ -48,18 +33,23 @@ export default function HelpPage({ onBack }: { onBack: () => void }) {
         <p>지금 필요한 도움을 찾아보세요!</p>
       </div>
       <div className="help-page__cards">
-        {resources.map(({ title, name, description, label, href, urgent }) => {
-          const isPhone = href.startsWith('tel:')
+        {!resources && <p role="status">{error || '도움 받을 곳을 불러오는 중이에요.'}</p>}
+        {error && <button type="button" onClick={() => { setError(''); setRetry((value) => value + 1) }}>다시 불러오기</button>}
+        {resources?.map((resource) => {
+          const { situation, name, description, actionType, actionValue } = resource
+          const href = helpResourceHref(resource)
+          const isPhone = actionType === 'TEL'
+          const label = isPhone ? actionValue : '기관 알아보기'
 
           return (
-            <section className="help-page__card" data-urgent={urgent} key={title}>
-              <h2>{title}</h2>
+            <section className="help-page__card" key={`${name}:${actionValue}`}>
+              <h2>{situation}</h2>
               <div className="help-page__row">
                 <div>
                   <h3>{name}</h3>
                   <p>{description}</p>
                 </div>
-                <a className="help-page__action" data-phone={isPhone} href={href} aria-label={`${name} ${label}`}>
+                {href && <a className="help-page__action" data-phone={isPhone} href={href} target={isPhone ? undefined : '_blank'} rel="noopener noreferrer" aria-label={`${name} ${label}`}>
                   <span className="help-page__action-label">{label}</span>
                   {isPhone ? (
                     <span className="help-page__phone-icon" aria-hidden="true" />
@@ -68,7 +58,7 @@ export default function HelpPage({ onBack }: { onBack: () => void }) {
                       <path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" />
                     </svg>
                   )}
-                </a>
+                </a>}
               </div>
             </section>
           )
