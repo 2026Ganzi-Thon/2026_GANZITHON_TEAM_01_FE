@@ -1,4 +1,5 @@
 import { readApi, writeApi } from './client'
+import type { HelpResource } from './helpResources'
 
 export type CardResponse = 'ACCEPTED' | 'DECLINED'
 
@@ -18,15 +19,10 @@ export type ChatMessage = {
   cardResponse: CardResponse | null
 }
 
-export type ChatHelpResource = {
-  name: string
-  description: string
-}
-
 type ChatTurn = {
   userMessage: ChatMessage
   replies: ChatMessage[]
-  helpResources: ChatHelpResource[] | null
+  helpResources: HelpResource[] | null
 }
 
 export async function getChatMessages(date: string, signal: AbortSignal) {

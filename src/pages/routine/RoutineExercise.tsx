@@ -10,13 +10,15 @@ type RoutineExerciseProps = {
   index: number
   count: number
   soundEnabled: boolean
+  busy: boolean
+  error: string
   onSoundChange: (enabled: boolean) => void
   onBack: (finished: boolean) => void
   onPrevious?: (finished: boolean) => void
   onNext: () => void
 }
 
-export default function RoutineExercise({ exercise, index, count, soundEnabled, onSoundChange, onBack, onPrevious, onNext }: RoutineExerciseProps) {
+export default function RoutineExercise({ exercise, index, count, soundEnabled, busy, error, onSoundChange, onBack, onPrevious, onNext }: RoutineExerciseProps) {
   const duration = exercise.seconds * 1000
   const audioRef = useRef<HTMLAudioElement>(null)
   const [playing, setPlaying] = useState(false)
@@ -59,7 +61,7 @@ export default function RoutineExercise({ exercise, index, count, soundEnabled, 
       <div className="routine-exercise__background" style={{ backgroundImage: `url(${exercise.background})` }} />
       <audio ref={audioRef} src={meditation} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} />
       <div className="routine-exercise__controls">
-        <button className="routine-exercise__back" type="button" aria-label="루틴 목록으로 돌아가기" onClick={() => onBack(finished)}>
+        <button className="routine-exercise__back" type="button" aria-label="루틴 목록으로 돌아가기" disabled={busy} onClick={() => onBack(finished)}>
           <span aria-hidden="true" />
         </button>
         <button type="button" aria-label={playing ? '음악 끄기' : '음악 켜기'} onClick={toggleSound}>
@@ -77,13 +79,14 @@ export default function RoutineExercise({ exercise, index, count, soundEnabled, 
         <img src={sheep} alt="" width="87" height="122" />
         <div className="routine-exercise__bubble">
           <p>{exercise.guide}</p>
-          <p>{exercise.repeat}</p>
+          {exercise.repeat && <p>{exercise.repeat}</p>}
         </div>
       </div>
       <div className="routine-exercise__actions">
-        {onPrevious && <button type="button" onClick={() => onPrevious(finished)}> 이전</button>}
-        <button type="button" disabled={!finished} onClick={onNext}>{index === count - 1 ? '종료' : '다음'}</button>
+        {onPrevious && <button type="button" disabled={busy} onClick={() => onPrevious(finished)}> 이전</button>}
+        <button type="button" disabled={!finished || busy} onClick={onNext}>{busy ? '저장 중…' : index === count - 1 ? '종료' : '다음'}</button>
       </div>
+      {error && <p role="alert">{error}</p>}
     </main>
   )
 }

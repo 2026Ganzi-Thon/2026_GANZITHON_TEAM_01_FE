@@ -16,8 +16,11 @@ export class ApiError extends Error {
 async function throwApiError(response: Response, action: string): Promise<never> {
   const body = await response.json().catch(() => null)
   const { message, code } = body?.error ?? {}
+  const displayMessage = code === 'ENGINE_UNAVAILABLE'
+    ? '잠시 후 다시 시도해 주세요'
+    : typeof message === 'string' && message ? message : `${action}에 실패했어요. 다시 시도해 주세요.`
   throw new ApiError(
-    typeof message === 'string' && message ? message : `${action}에 실패했어요. 다시 시도해 주세요.`,
+    displayMessage,
     response.status,
     typeof code === 'string' ? code : undefined,
   )

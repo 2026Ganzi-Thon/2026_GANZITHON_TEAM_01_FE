@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { getChatMessages, respondToChatCard, sendChatMessage, type CardResponse, type ChatHelpResource, type ChatMessage } from '../../api/chat'
+import { getChatMessages, respondToChatCard, sendChatMessage, type CardResponse, type ChatMessage } from '../../api/chat'
+import { helpResourceHref, type HelpResource } from '../../api/helpResources'
 import { ApiError } from '../../api/client'
 import { saveRequiredConsents } from '../../api/consents'
 import { todayInSeoul } from '../../serviceDate'
@@ -35,7 +36,7 @@ export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void 
   const [needsConsent, setNeedsConsent] = useState(false)
   const [isSavingConsent, setIsSavingConsent] = useState(false)
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-  const [helpByMessage, setHelpByMessage] = useState<Record<number, ChatHelpResource[]>>({})
+  const [helpByMessage, setHelpByMessage] = useState<Record<number, HelpResource[]>>({})
   const conversation = useRef<HTMLDivElement>(null)
   const calendarDialog = useRef<HTMLDialogElement>(null)
   const today = todayInSeoul()
@@ -199,16 +200,24 @@ export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void 
 
             return (
               <Message key={message.id} fromUser={message.role === 'USER'}>
-                {message.messageType === 'WEEK_SUMMARY' && message.payload?.title && <strong>{message.payload.title}</strong>}
-                <div>{message.payload?.body || message.content}</div>
                 {message.riskFlag && (
-                  <div className="chat-help">
-                    {helpByMessage[message.id]?.map((resource, index) => (
-                      <div key={index}><strong>{resource.name}</strong><div>{resource.description}</div></div>
-                    ))}
+                  <div className="chat-help" aria-label="도움 받을 곳">
+                    <strong>도움 받을 곳</strong>
+                    {helpByMessage[message.id]?.map((resource) => {
+                      const href = helpResourceHref(resource)
+                      return (
+                        <div key={`${resource.name}:${resource.actionValue}`}>
+                          {href ? <a href={href} target={resource.actionType === 'LINK' ? '_blank' : undefined} rel="noopener noreferrer">{resource.name}</a>
+                            : <strong>{resource.name}</strong>}
+                          <div>{resource.description}</div>
+                        </div>
+                      )
+                    })}
                     <a href="#help">도움 받을 곳 보기</a>
                   </div>
                 )}
+                {message.messageType === 'WEEK_SUMMARY' && message.payload?.title && <strong>{message.payload.title}</strong>}
+                <div>{message.payload?.body || message.content}</div>
               </Message>
             )
           })}
@@ -238,6 +247,7 @@ export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void 
       {isToday && <form className="chat-composer" onSubmit={sendMessage}>
         <input
           aria-label="소미에게 보낼 메시지"
+          aria-describedby="chat-reply-notice"
           placeholder="소미에게 하고 싶은 말을 적어보세요..."
           value={draft}
           readOnly={isSending}
@@ -248,6 +258,7 @@ export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void 
             <path d="m21 3-6.3 18-4.4-7.3L3 9.3 21 3ZM10.3 13.7l6.2-6.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
+        <p id="chat-reply-notice" className="chat-reply-notice">대화 내용은 소미 답장 생성에 사용돼요.</p>
       </form>}
       <ChatCalendar
         dialogRef={calendarDialog}

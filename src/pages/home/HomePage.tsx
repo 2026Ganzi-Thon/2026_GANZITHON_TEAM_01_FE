@@ -19,11 +19,11 @@ import WeeklyChanges from './WeeklyChanges'
 import '../../styles/home/HomePage.css'
 
 const panels = ['하루 체크인', '홈', '이번 주 변화']
-const sheepImages: Partial<Record<number, string>> = {
-  1: levelOneSheep,
-  2: levelTwoSheep,
-  3: levelThreeSheep,
-  4: levelFourSheep,
+const sheepImages: Partial<Record<string, string>> = {
+  sheep_level_1: levelOneSheep,
+  sheep_level_2: levelTwoSheep,
+  sheep_level_3: levelThreeSheep,
+  sheep_level_4: levelFourSheep,
 }
 
 type HomeResult<T> = { data: T } | { error: unknown } | null
@@ -52,8 +52,7 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
   const todayData = today && 'data' in today ? today.data : null
   const weekData = week && 'data' in week ? week.data : null
   const sheepLevel = todayData?.level ?? null
-  const sheepImage = (sheepLevel === null ? undefined : sheepImages[sheepLevel]) ?? originalSheep
-  const bubbleText = todayData?.bubbleText?.trim().replace(/보여요\.\s*(?=\S)/g, '보여요.\n')
+  const sheepImage = sheepImages[todayData?.assetKey ?? ''] ?? originalSheep
 
   useLayoutEffect(() => {
     const slides = slidesRef.current
@@ -249,10 +248,10 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
           )}
         </section>
         <section className="home__panel" aria-label={panels[1]}>
-          <div className="sheep-progress" role="img" aria-label={sheepLevel === null ? '표시할 양 레벨 없음' : `오늘의 양 레벨 ${sheepLevel}단계`}>
+          <div className="sheep-progress" role="img" aria-label={sheepLevel === null ? '오늘의 양 레벨 기록 없음' : `오늘의 양 레벨 ${sheepLevel}단계`}>
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img src={miniSheep} width="66" height="49" alt="" />
-            <span className="sheep-progress__number">{sheepLevel ?? '–'}</span>
+            <span className="sheep-progress__number">{sheepLevel ?? (todayData ? '기록 없음' : '–')}</span>
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
           </div>
@@ -261,10 +260,11 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
               {renderLoadStatus(today, '오늘의 양 레벨을 불러오는 중이에요.')}
             </div>
           )}
+          {todayData?.isStale && <p className="home__level-status" role="status">이전 기록 기준</p>}
 
           <div className="home__bubble">
             <img src={speechBubble} width="206" height="53" alt="" />
-            <p>{bubbleText || '오늘 있었던 일, 나한테 들려줄래?'}</p>
+            <p>오늘 있었던 일, 나한테 들려줄래?</p>
           </div>
           <img
             className="home__sheep"

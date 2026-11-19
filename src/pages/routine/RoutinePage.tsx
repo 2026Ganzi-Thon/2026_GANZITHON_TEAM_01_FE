@@ -1,4 +1,9 @@
 import { useEffect, useState } from 'react'
+import { changeRoutine, getJournal, getRoutinesToday, journalMoods, writeJournal, type JournalEmotion, type JournalEntry, type RoutineItem } from '../../api/routines'
+import { ApiError } from '../../api/client'
+import { getTodayState, type TodayState } from '../../api/home'
+import { saveRequiredConsents } from '../../api/consents'
+import { todayInSeoul } from '../../serviceDate'
 import clock from '../../assets/icon/clock.png'
 import heart from '../../assets/icon/heart.png'
 import pen from '../../assets/icon/pen.png'
@@ -16,103 +21,218 @@ import RoutineExercise from './RoutineExercise'
 import RoutineReflection from './RoutineReflection'
 import { CheckInComplete } from '../home/CheckIn'
 import '../../styles/routine/RoutinePage.css'
+import ConsentPage from '../auth/ConsentPage'
+import { countReflection, readRoutineHistory, saveRoutineHistory, type RoutineOverview } from './routineHistory'
 
-const description = '호흡에 집중하여 마음 가라앉히기'
-const recommended = [
-  { id: 'breathing', title: '숨 고르기', image: step1, background: background1, seconds: 60, guide: '의자에 앉아 한 손을 배에 두고,\n코로 5초 들이 쉬고\n입으로 5초 내쉽니다', repeat: '5회 반복하세요!' },
-  { id: 'shoulders', title: '어깨 천천히 돌리기', image: step2, background: background2, seconds: 30, guide: '어깨를 귀 쪽으로 올렸다가\n뒤로 크게 돌려 내립니다', repeat: '앞 뒤 각각 8회 천천히\n호흡하며 합니다.' },
-  { id: 'twist', title: '의자에 앉아 허리 비틀기', image: step3, background: background3, seconds: 30, guide: '의자에 앉아 발을 바닥에 두고,\n상체를 한쪽으로 천천히 돌립니다.\n반대쪽도 같은 방법으로 합니다.', repeat: '2회 반복하세요!' },
-  { id: 'stretch', title: '손목, 팔 스트레칭', image: step4, background: background4, seconds: 30, guide: '한 팔을 앞으로 뻗고 손바닥을\n아래로 한 뒤,\n다른 손으로 손가락을 몸쪽으로\n당겨 팔 안쪽을 늘립니다', repeat: '2회 반복하세요!' },
-]
-
+const visuals: Record<string, { image: string; background: string }> = {
+  BREATHING: { image: step1, background: background1 },
+  SHOULDER_ROLL: { image: step2, background: background2 },
+  SEATED_TWIST: { image: step3, background: background3 },
+  WRIST_ARM_STRETCH: { image: step4, background: background4 },
+}
 const reflections = [
   { id: 'mood', title: '마음 상태 확인', image: heart },
   { id: 'journal', title: '마음 일기 쓰기', image: pen },
 ]
-
-const activities = [...recommended, ...reflections]
 const weekdays = ['월', '화', '수', '목', '금', '토', '일']
-const storageKey = 'routine-completed'
+const activityCount = 6
 
-function dateKey(date: Date) {
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+function completedCount(routines: RoutineItem[], reflectionCount: number) {
+  return routines.filter(({ status }) => status === 'COMPLETED').length + reflectionCount
 }
 
-function readProgress(): Record<string, string[]> {
-  try {
-    const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? '{}')
-    if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
-      return Object.fromEntries(Object.entries(saved).filter(([, ids]) =>
-        Array.isArray(ids) && ids.every((id) => typeof id === 'string'),
-      ))
-    }
-  } catch {
-    // Progress can still be tracked while the screen is open.
-  }
-  return {}
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof ApiError ? error.message : fallback
 }
 
-export default function RoutinePage({ onHome }: { onHome: (allCompleted: boolean) => void }) {
-  const [progress, setProgress] = useState(readProgress)
+export default function RoutinePage({ loginId, onHome }: { loginId: string; onHome: () => void }) {
+  const [overview, setOverview] = useState<RoutineOverview>()
+  const [todayState, setTodayState] = useState<TodayState>()
+  const [history, setHistory] = useState(() => readRoutineHistory(loginId))
+  const [selected, setSelected] = useState('')
+  const [pastJournal, setPastJournal] = useState<{ date: string; entries: JournalEntry[]; error?: string }>()
+  const [active, setActive] = useState<string | null>(null)
   const [soundEnabled, setSoundEnabled] = useState(true)
-  const [active, setActive] = useState<{ activity: (typeof activities)[number]; day: string } | null>(null)
-  const [mood, setMood] = useState('')
-  const [journal, setJournal] = useState('')
   const [reflectionComplete, setReflectionComplete] = useState(false)
-  const [today, setToday] = useState(() => new Date())
-  const todayKey = dateKey(today)
-  const completed = progress[todayKey] ?? []
-  const unlocked = recommended.every(({ id }) => completed.includes(id))
-  const monday = today.getDate() - (today.getDay() + 6) % 7
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [retry, setRetry] = useState(0)
+  const [needsConsent, setNeedsConsent] = useState(false)
+  const today = overview?.today
+  const selectedDate = selected || today?.localDate
+  const isToday = selectedDate === today?.localDate
+  const future = Boolean(today && selectedDate && selectedDate > today.localDate)
 
   useEffect(() => {
-    function updateDate() {
-      const now = new Date()
-      setToday((current) => dateKey(current) === dateKey(now) ? current : now)
+    if (!today || active || busy) return
+    function refreshDate() {
+      if (todayInSeoul() === today?.localDate) return
+      setOverview(undefined)
+      setSelected('')
+      setRetry((value) => value + 1)
     }
-    const timer = window.setInterval(updateDate, 30_000)
-    window.addEventListener('focus', updateDate)
+    const timer = window.setInterval(refreshDate, 30_000)
+    window.addEventListener('focus', refreshDate)
     return () => {
       window.clearInterval(timer)
-      window.removeEventListener('focus', updateDate)
+      window.removeEventListener('focus', refreshDate)
     }
-  }, [])
+  }, [active, busy, today])
 
-  function saveProgress(day: string, ids: string[]) {
-    const next = { ...progress, [day]: ids }
-    setProgress(next)
+  useEffect(() => {
+    if (needsConsent) return
+    const controller = new AbortController()
+    const { signal } = controller
+    void getTodayState(signal).then(
+      (state) => { if (!signal.aborted) setTodayState(state) },
+      () => { if (!signal.aborted) setTodayState(undefined) },
+    )
+    void (async () => {
+      try {
+        const today = await getRoutinesToday(signal)
+        const journals = await getJournal(today.localDate, signal)
+        if (signal.aborted) return
+        const data = { today, journals }
+        setOverview(data)
+        setHistory(saveRoutineHistory(loginId, data))
+      } catch (error) {
+        if (signal.aborted) return
+        if (error instanceof ApiError && error.code === 'CONSENT_REQUIRED') setNeedsConsent(true)
+        else setError(errorMessage(error, '루틴 정보를 불러오지 못했어요.'))
+      }
+    })()
+    return () => controller.abort()
+  }, [loginId, needsConsent, retry])
+
+  useEffect(() => {
+    if (!selected || isToday || future || needsConsent) return
+    const controller = new AbortController()
+    void getJournal(selected, controller.signal).then(
+      (entries) => { if (!controller.signal.aborted) setPastJournal({ date: selected, entries }) },
+      (error: unknown) => {
+        if (!controller.signal.aborted) setPastJournal({ date: selected, entries: [], error: errorMessage(error, '마음 기록을 불러오지 못했어요.') })
+      },
+    )
+    return () => controller.abort()
+  }, [future, isToday, needsConsent, selected])
+
+  async function saveConsent() {
+    if (busy) return
+    setBusy(true)
+    setError('')
     try {
-      localStorage.setItem(storageKey, JSON.stringify(next))
-    } catch {
-      // Keep the current completion in state if storage is unavailable.
+      await saveRequiredConsents()
+      setNeedsConsent(false)
+    } catch (error) {
+      setError(errorMessage(error, '필수 동의를 저장하지 못했어요.'))
+    } finally {
+      setBusy(false)
     }
   }
 
-  function finishActivity(nextActivity?: (typeof recommended)[number], completedIds?: string[]) {
-    if (!active) return
-    const previous = progress[active.day] ?? []
-    const updated = [...new Set([...previous, ...(completedIds ?? [active.activity.id])])]
-    if (updated.length > previous.length) saveProgress(active.day, updated)
-    setActive(nextActivity ? { activity: nextActivity, day: active.day } : null)
+  function applyOverview(data: RoutineOverview) {
+    setOverview(data)
+    setHistory(saveRoutineHistory(loginId, data))
   }
 
-  const exerciseIndex = recommended.findIndex(({ id }) => id === active?.activity.id)
-  const exercise = recommended[exerciseIndex]
+  async function moveExercise(current: RoutineItem | undefined, next: RoutineItem | undefined, finished = false) {
+    if (!overview || busy) return
+    setBusy(true)
+    setError('')
+    let data = overview
+    try {
+      if (todayInSeoul() !== data.today.localDate) {
+        setOverview(undefined)
+        setActive(null)
+        setSelected('')
+        setRetry((value) => value + 1)
+        return
+      }
+      if (current && current.status !== 'COMPLETED') {
+        const result = await changeRoutine(current.routineId, finished ? 'complete' : 'skip')
+        const routines = data.today.routines.map((item) => item.routineId === current.routineId ? { ...item, status: result.status } : item)
+        data = { ...data, today: { ...data.today, routines } }
+        applyOverview(data)
+        if (result.status === 'COMPLETED' && !data.today.journalUnlocked && completedCount(routines, 0) === activityCount - reflections.length) {
+          setRetry((value) => value + 1)
+        }
+      }
+      if (next && next.status !== 'COMPLETED' && next.status !== 'STARTED') {
+        await changeRoutine(next.routineId, 'start')
+      }
+      setActive(next?.routineId ?? null)
+    } catch (error) {
+      setError(errorMessage(error, '루틴 기록을 저장하지 못했어요. 다시 시도해 주세요.'))
+      if (error instanceof ApiError && error.status === 409) setRetry((value) => value + 1)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function saveReflection(emotion: JournalEmotion | null, text: string) {
+    if (!overview || busy) return
+    setBusy(true)
+    setError('')
+    try {
+      if (todayInSeoul() !== overview.today.localDate) {
+        setError('날짜가 바뀌었어요. 루틴 목록으로 돌아가 오늘 기록을 열어 주세요.')
+        return
+      }
+      const trimmed = text.trim()
+      if (emotion || trimmed) {
+        const entry = await writeJournal(emotion, trimmed)
+        applyOverview({ ...overview, journals: [...overview.journals, entry] })
+      }
+      if (emotion && trimmed) setReflectionComplete(true)
+      else setActive(null)
+    } catch (error) {
+      setError(errorMessage(error, '마음 기록을 저장하지 못했어요.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (needsConsent) return <ConsentPage onContinue={saveConsent} isSubmitting={busy} error={error} />
+
+  if (!overview || !today) {
+    return (
+      <main className="routine-page routine-page--overview">
+        <p role="status">{error || '루틴을 불러오는 중이에요.'}</p>
+        {error && <button type="button" onClick={() => { setError(''); setRetry((value) => value + 1) }}>다시 불러오기</button>}
+      </main>
+    )
+  }
+
+  const exerciseIndex = today.routines.findIndex(({ routineId }) => routineId === active)
+  const exercise = today.routines[exerciseIndex]
   if (active && exercise) {
     return (
       <RoutineExercise
-        key={exercise.id}
-        exercise={exercise}
+        key={exercise.routineId}
+        exercise={{
+          title: exercise.title,
+          background: visuals[exercise.routineId]?.background ?? background1,
+          seconds: exercise.durationSec,
+          guide: exercise.routineId === 'SEATED_TWIST'
+            ? '의자에 앉아 발을 바닥에 두고,\n상체를 한쪽으로 천천히 돌립니다.\n반대쪽도 같은 방법으로 합니다.'
+            : exercise.instruction,
+          repeat: exercise.routineId === 'SEATED_TWIST' ? '2회 반복하세요!' : '',
+        }}
         index={exerciseIndex}
-        count={recommended.length}
+        count={today.routines.length}
         soundEnabled={soundEnabled}
         onSoundChange={setSoundEnabled}
-        onBack={(finished) => finishActivity(undefined, finished ? [exercise.id] : [])}
-        onPrevious={exerciseIndex > 0 ? (finished) => finishActivity(recommended[exerciseIndex - 1], finished ? [exercise.id] : []) : undefined}
-        onNext={() => finishActivity(recommended[exerciseIndex + 1])}
+        busy={busy}
+        error={error}
+        onBack={(finished) => void moveExercise(exercise, undefined, finished)}
+        onPrevious={exerciseIndex > 0 ? (finished) => void moveExercise(exercise, today.routines[exerciseIndex - 1], finished) : undefined}
+        onNext={() => void moveExercise(exercise, today.routines[exerciseIndex + 1], true)}
       />
     )
   }
+
+  const lastEmotion = overview.journals.findLast(({ emotion }) => emotion)?.emotion ?? null
+  const lastText = overview.journals.findLast(({ text }) => text?.trim())?.text ?? ''
 
   if (active && reflectionComplete) {
     return (
@@ -120,7 +240,7 @@ export default function RoutinePage({ onHome }: { onHome: (allCompleted: boolean
         <CheckInComplete
           title="오늘도 한 겹 덜어냈어요!"
           onPrevious={() => setReflectionComplete(false)}
-          onHome={() => onHome(activities.every(({ id }) => progress[active.day]?.includes(id)))}
+          onHome={onHome}
         />
       </main>
     )
@@ -129,111 +249,128 @@ export default function RoutinePage({ onHome }: { onHome: (allCompleted: boolean
   if (active) {
     return (
       <RoutineReflection
-        mood={mood}
-        journal={journal}
-        onBack={() => setActive(null)}
-        onComplete={(nextMood, nextJournal) => {
-          setMood(nextMood)
-          setJournal(nextJournal)
-          const completedIds = (progress[active.day] ?? []).filter((id) => id !== 'mood' && id !== 'journal')
-          if (nextMood) completedIds.push('mood')
-          if (nextJournal.trim()) completedIds.push('journal')
-          saveProgress(active.day, completedIds)
-          if (nextMood && nextJournal.trim()) setReflectionComplete(true)
-          else setActive(null)
-        }}
+        mood={lastEmotion}
+        journal={lastText}
+        busy={busy}
+        error={error}
+        onBack={() => { setError(''); setActive(null) }}
+        onComplete={saveReflection}
       />
     )
   }
 
-  function renderActivity(activity: (typeof activities)[number], isRecommended: boolean) {
-    const done = completed.includes(activity.id)
-    const locked = !isRecommended && !unlocked
+  const historyDay = selectedDate ? history[selectedDate] : undefined
+  const selectedWeekDay = today.week.find(({ localDate }) => localDate === selectedDate)
+  const selectedJournal = pastJournal?.date === selectedDate ? pastJournal : undefined
+  const shownRoutines = isToday ? today.routines : historyDay?.routines ?? []
+  const level = isToday ? today.level : historyDay?.level
+  const statusText = todayState?.localDate === selectedDate ? todayState?.statusText : undefined
+  const shownReflections = isToday ? countReflection(overview.journals) : historyDay?.reflectionCount ?? 0
+  const allCompleted = completedCount(shownRoutines, shownReflections) >= activityCount
+
+  function renderRoutine(item: RoutineItem) {
+    const done = item.status === 'COMPLETED'
     return (
-      <button
-        className="routine-card"
-        data-completed={done}
-        disabled={locked}
-        key={activity.id}
-        type="button"
-        onClick={() => setActive({ activity, day: todayKey })}
-      >
-        {isRecommended ? (
-          <span className="routine-thumbnail" style={{ backgroundImage: `url(${activity.image})` }} />
-        ) : (
-          <span className="routine-reflection-icon"><img src={activity.image} alt="" /></span>
-        )}
+      <button className="routine-card" data-completed={done} disabled={busy || !isToday} key={item.routineId} type="button"
+        onClick={() => void moveExercise(undefined, item)}>
+        <span className="routine-thumbnail" style={{ backgroundImage: `url(${visuals[item.routineId]?.image ?? step1})` }} />
         <span className="routine-card-copy">
-          <strong>{activity.title}</strong>
-          {isRecommended && <>
-            <span>{description}</span>
-            <span className="routine-duration"><img src={clock} alt="" width="15" height="15" />{'seconds' in activity && activity.seconds === 30 ? '30초' : '1분'}</span>
-          </>}
+          <strong>{item.title}</strong>
+          <span>{item.subtitle}</span>
+          <span className="routine-duration"><img src={clock} alt="" width="15" height="15" />{item.durationSec === 60 ? '1분' : `${item.durationSec}초`}</span>
         </span>
-        {locked ? (
-          <span className="routine-lock" role="img" aria-label="잠김" />
-        ) : (
-          <span className="routine-checkbox" role="img" aria-label={done ? '완료' : '미완료'} />
-        )}
+        <span className="routine-checkbox" role="img" aria-label={done ? '완료' : '미완료'} />
       </button>
     )
   }
 
-  const allCompleted = activities.every(({ id }) => completed.includes(id))
-  const week = weekdays.map((weekday, index) => {
-    const date = new Date(today.getFullYear(), today.getMonth(), monday + index)
-    const key = dateKey(date)
-    const count = activities.filter(({ id }) => progress[key]?.includes(id)).length
-    return { weekday, date, key, count }
-  })
-  const completedDays = week.filter(({ date, count }) => date <= today && count === activities.length).length
-
   return (
-    <main className="routine-page routine-page--overview" key="overview">
+    <main className="routine-page routine-page--overview">
       <header className="routine-intro">
         <h1>오늘은 조금 덜어내 볼까요?</h1>
         <p>지금 나에게 필요한 작은 쉼을 선택하세요</p>
       </header>
-
       <ol className="routine-week" aria-label="이번 주 루틴 완료 현황">
-        {week.map(({ weekday, date, key, count }) => (
-          <li key={weekday} aria-current={key === todayKey ? 'date' : undefined} aria-label={`${date.getDate()}일 ${weekday}요일, ${activities.length}개 중 ${count}개 완료`}>
-            <span className="routine-day" style={count > 0 && key !== todayKey ? {
-              backgroundColor: `hsl(10.5495deg 86.6667% 79.4118% / ${count / activities.length})`,
-              color: '#fff',
-            } : undefined}>{date.getDate()}</span>
-            <span className="routine-weekday" data-has-progress={count > 0}>{weekday}</span>
-          </li>
-        ))}
+        {today.week.map(({ localDate, done }, index) => {
+          const snapshot = history[localDate]
+          const count = localDate === today.localDate ? completedCount(today.routines, countReflection(overview.journals))
+            : snapshot ? completedCount(snapshot.routines, snapshot.reflectionCount) : 0
+          const weekday = weekdays[index]
+          const day = Number(localDate.slice(-2))
+          const status = !count && localDate !== today.localDate && done ? '완료 기록 있음, 개수 미확인' : `${activityCount}개 중 ${count}개 완료`
+          return (
+            <li key={localDate}>
+              <button type="button" aria-current={localDate === today.localDate ? 'date' : undefined}
+                aria-pressed={localDate === selectedDate} aria-label={`${day}일 ${weekday}요일, ${status}`}
+                onClick={() => { setSelected(localDate); setError('') }}>
+                <span className="routine-day" style={count > 0 ? {
+                  backgroundColor: `hsl(10.5495deg 86.6667% 79.4118% / ${Math.min(count, activityCount) / activityCount})`,
+                } : undefined}>{day}</span>
+                <span className="routine-weekday">{weekday}</span>
+              </button>
+            </li>
+          )
+        })}
       </ol>
-
-      <section className="routine-status" aria-label="오늘의 상태">
-        <div className="routine-sheep"><img src={allCompleted ? completedSheep : sheep} alt="" width="44" height="51" /></div>
-        <div className="routine-status-copy">
-          <div className="routine-status-label"><span>오늘의 상태</span><span>2단계</span></div>
-          <strong>{allCompleted ? '오늘 한 겹 덜어냈어요' : '조금 지쳐있는 상태예요.'}</strong>
-          <p>{allCompleted ? `숨 고르기 완료 · 이번 주 ${completedDays}번째` : '가벼운 회복 루틴을 추천해요'}</p>
-        </div>
-      </section>
-
-      <section className="routine-section" aria-labelledby="routine-recommended">
-        <div className="routine-section-heading">
-          <h2 id="routine-recommended">오늘의 추천 루틴</h2>
-          <span>{recommended.length}가지</span>
-        </div>
-        <div className="routine-cards">{recommended.map((activity) => renderActivity(activity, true))}</div>
-      </section>
-
-      <section className="routine-section routine-reflections" aria-labelledby="routine-reflections">
-        <div className="routine-section-heading">
-          <div>
-            <h2 id="routine-reflections">마음 정리하기</h2>
-            <p>오늘의 추천 루틴을 모두 완료하면 잠금이 풀려요</p>
-          </div>
-          <span>{reflections.length}가지</span>
-        </div>
-        <div className="routine-cards">{reflections.map((activity) => renderActivity(activity, false))}</div>
-      </section>
+      {error && <p role="alert">{error}</p>}
+      {future ? <p role="status">아직 오지 않은 날짜예요.</p> : (
+        <>
+          <section className="routine-status" aria-label={isToday ? '오늘의 상태' : '선택한 날짜의 상태'}>
+            <div className="routine-sheep"><img src={allCompleted ? completedSheep : sheep} alt="" width="44" height="51" /></div>
+            <div className="routine-status-copy">
+              <div className="routine-status-label"><span>{isToday ? '오늘의 상태' : selectedDate}</span>{level != null && <span>{level}단계</span>}</div>
+              {allCompleted ? <strong>한 겹 덜어냈어요</strong> : isToday ? (
+                (statusText || level == null) && <strong>{statusText || '기록 없음'}</strong>
+              ) : <strong>이날의 루틴 기록</strong>}
+              {isToday && !allCompleted && <p>가벼운 회복 루틴을 추천해요</p>}
+              {!isToday && !historyDay && <p>{selectedWeekDay?.done ? '완료 기록이 있어요. 항목별 완료 상태는 확인할 수 없어요.' : '완료한 루틴 기록이 없어요.'}</p>}
+            </div>
+          </section>
+          {shownRoutines.length > 0 && (
+            <section className="routine-section" aria-labelledby="routine-recommended">
+              <div className="routine-section-heading">
+                <h2 id="routine-recommended">{isToday ? '오늘의 추천 루틴' : '이날의 추천 루틴'}</h2>
+                <span>{shownRoutines.length}가지</span>
+              </div>
+              <div className="routine-cards">{shownRoutines.map(renderRoutine)}</div>
+            </section>
+          )}
+          <section className="routine-section routine-reflections" aria-labelledby="routine-reflections">
+            <div className="routine-section-heading">
+              <div>
+                <h2 id="routine-reflections">마음 정리하기</h2>
+                {isToday && !today.journalUnlocked && <p>오늘의 추천 루틴을 모두 완료하면 잠금이 풀려요</p>}
+              </div>
+              {isToday && <span>{reflections.length}가지</span>}
+            </div>
+            {isToday ? <div className="routine-cards">
+              {reflections.map(({ id, title, image }) => {
+                const done = id === 'mood' ? Boolean(lastEmotion) : Boolean(lastText)
+                return (
+                  <button className="routine-card" data-completed={done} disabled={busy || !today.journalUnlocked} key={id}
+                    type="button" onClick={() => setActive(id)}>
+                    <span className="routine-reflection-icon"><img src={image} alt="" /></span>
+                    <span className="routine-card-copy"><strong>{title}</strong></span>
+                    {today.journalUnlocked
+                      ? <span className="routine-checkbox" role="img" aria-label={done ? '완료' : '미완료'} />
+                      : <span className="routine-lock" role="img" aria-label="잠김" />}
+                  </button>
+                )
+              })}
+            </div> : !selectedJournal ? <p role="status">마음 기록을 불러오는 중이에요.</p>
+              : selectedJournal.error ? <p role="alert">{selectedJournal.error}</p>
+              : selectedJournal.entries.length === 0 ? <p>이날 작성한 마음 기록이 없어요.</p>
+              : <ul className="routine-journal-history">
+                {selectedJournal.entries.map(({ emotion, text }, index) => (
+                  <li key={index}>
+                    {emotion && <strong>{journalMoods[emotion]}</strong>}
+                    {text && <p>{text}</p>}
+                  </li>
+                ))}
+              </ul>}
+          </section>
+        </>
+      )}
     </main>
   )
 }

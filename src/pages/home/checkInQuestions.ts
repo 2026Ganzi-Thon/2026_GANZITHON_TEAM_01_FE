@@ -10,17 +10,17 @@ const moods = {
 } as const
 
 const stressors = {
-  '취업이나 업무': 'WORK',
+  '취업·업무': 'WORK',
   '미래에 대한 걱정': 'FUTURE_WORRY',
   '다른 사람과의 비교': 'COMPARISON',
   '인간관계': 'RELATIONSHIP',
-  '특별한 이유는 없어요': 'NO_REASON',
+  '특별한 이유 없음': 'NO_REASON',
   '기타': 'OTHER',
 } as const
 
 const supportNeeds = {
   '따뜻한 위로': 'COMFORT',
-  '마음 털어 놓기': 'VENT',
+  '마음 털어놓기': 'VENT',
   '잠깐 쉬어가기': 'SHORT_BREAK',
   '작은 행동 추천': 'SMALL_ACTION',
 } as const

@@ -30,14 +30,14 @@ export default function WeeklyChanges({ data, sheepImage, loadStatus, onOpenRout
             <div>
               {data.woolWeightKg !== null && <p className="weekly-changes__weight">{measurement.format(data.woolWeightKg)}kg</p>}
               {data.levelText && <h2>{data.levelText}</h2>}
-              {data.recordedDays === 0 ? <p>이번 주에 기록된 양 레벨이 없어요.</p> : data.changeSummary && <p>{data.changeSummary}</p>}
+              {data.recordedDays === 0 ? <p>기록 없음</p> : data.changeSummary && <p>{data.changeSummary}</p>}
             </div>
           </div>
 
           <section className="weekly-changes__fatigue" aria-labelledby="weekly-fatigue-title">
             <div>
               <p className="weekly-changes__average">
-                {data.averageLevel === null ? '–' : `${measurement.format(data.averageLevel)} / ${maxLevel}`}
+                {data.averageLevel === null ? '기록 없음' : `${measurement.format(data.averageLevel)} / ${maxLevel}`}
               </p>
               <h2 id="weekly-fatigue-title">이번 주 평균 피로도</h2>
             </div>
