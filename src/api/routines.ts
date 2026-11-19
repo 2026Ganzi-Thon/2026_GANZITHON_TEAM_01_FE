@@ -2,6 +2,8 @@ import { readApi, writeApi } from './client'
 
 type RoutineStatus = 'NOT_STARTED' | 'STARTED' | 'COMPLETED' | 'SKIPPED'
 
+export type RoutineTarget = { routineId?: string; title: string }
+
 export type RoutineItem = {
   routineId: string
   title: string

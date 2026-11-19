@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { changeRoutine, getJournal, getRoutinesToday, journalMoods, writeJournal, type JournalEmotion, type JournalEntry, type RoutineItem } from '../../api/routines'
+import { useEffect, useRef, useState } from 'react'
+import { changeRoutine, getJournal, getRoutinesToday, journalMoods, writeJournal, type JournalEmotion, type JournalEntry, type RoutineItem, type RoutineTarget } from '../../api/routines'
 import { ApiError } from '../../api/client'
 import { getTodayState, type TodayState } from '../../api/home'
 import { saveRequiredConsents } from '../../api/consents'
@@ -45,7 +45,24 @@ function errorMessage(error: unknown, fallback: string) {
   return error instanceof ApiError ? error.message : fallback
 }
 
-export default function RoutinePage({ loginId, onHome }: { loginId: string; onHome: () => void }) {
+function findRecommendedRoutine(routines: RoutineItem[], target: RoutineTarget) {
+  const byId = routines.find(({ routineId }) => routineId === target.routineId)
+  if (byId) return byId
+  const title = target.title.trim().normalize('NFC')
+  const matches = routines.filter((routine) => routine.title.trim().normalize('NFC') === title)
+  return matches.length === 1 ? matches[0] : undefined
+}
+
+async function recordRoutineStart(routine: RoutineItem) {
+  if (routine.status === 'COMPLETED' || routine.status === 'STARTED') return
+  await changeRoutine(routine.routineId, 'start')
+}
+
+export default function RoutinePage({ loginId, initialRoutine, onHome }: {
+  loginId: string
+  initialRoutine?: RoutineTarget
+  onHome: () => void
+}) {
   const [overview, setOverview] = useState<RoutineOverview>()
   const [todayState, setTodayState] = useState<TodayState>()
   const [history, setHistory] = useState(() => readRoutineHistory(loginId))
@@ -58,6 +75,7 @@ export default function RoutinePage({ loginId, onHome }: { loginId: string; onHo
   const [error, setError] = useState('')
   const [retry, setRetry] = useState(0)
   const [needsConsent, setNeedsConsent] = useState(false)
+  const initialRoutineHandled = useRef(false)
   const today = overview?.today
   const selectedDate = selected || today?.localDate
   const isToday = selectedDate === today?.localDate
@@ -93,16 +111,33 @@ export default function RoutinePage({ loginId, onHome }: { loginId: string; onHo
         const journals = await getJournal(today.localDate, signal)
         if (signal.aborted) return
         const data = { today, journals }
+        if (initialRoutine && !initialRoutineHandled.current) {
+          if (today.localDate !== todayInSeoul()) {
+            setError('날짜가 바뀌었어요. 오늘의 루틴을 다시 불러와 주세요.')
+            return
+          }
+          const routine = findRecommendedRoutine(today.routines, initialRoutine)
+          if (routine) {
+            await recordRoutineStart(routine)
+            if (signal.aborted) return
+            setActive(routine.routineId)
+          } else {
+            setError('추천받은 루틴이 오늘의 루틴 목록에 없어요.')
+          }
+          initialRoutineHandled.current = true
+        }
         setOverview(data)
         setHistory(saveRoutineHistory(loginId, data))
       } catch (error) {
         if (signal.aborted) return
         if (error instanceof ApiError && error.code === 'CONSENT_REQUIRED') setNeedsConsent(true)
-        else setError(errorMessage(error, '루틴 정보를 불러오지 못했어요.'))
+        else setError(errorMessage(error, initialRoutine && !initialRoutineHandled.current
+          ? '추천 루틴을 열지 못했어요.'
+          : '루틴 정보를 불러오지 못했어요.'))
       }
     })()
     return () => controller.abort()
-  }, [loginId, needsConsent, retry])
+  }, [initialRoutine, loginId, needsConsent, retry])
 
   useEffect(() => {
     if (!selected || isToday || future || needsConsent) return
@@ -157,9 +192,7 @@ export default function RoutinePage({ loginId, onHome }: { loginId: string; onHo
           setRetry((value) => value + 1)
         }
       }
-      if (next && next.status !== 'COMPLETED' && next.status !== 'STARTED') {
-        await changeRoutine(next.routineId, 'start')
-      }
+      if (next) await recordRoutineStart(next)
       setActive(next?.routineId ?? null)
     } catch (error) {
       setError(errorMessage(error, '루틴 기록을 저장하지 못했어요. 다시 시도해 주세요.'))

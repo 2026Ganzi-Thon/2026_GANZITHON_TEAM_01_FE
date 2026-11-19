@@ -2,7 +2,7 @@ import { useState, type SubmitEvent } from 'react'
 import { signup } from '../../api/auth'
 import '../../styles/auth/SignupPage.css'
 
-function SignupPage({ onComplete }: { onComplete: (loginId: string) => void }) {
+function SignupPage({ onComplete, onLogin }: { onComplete: (loginId: string) => void; onLogin: () => void }) {
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [showMismatch, setShowMismatch] = useState(false)
@@ -105,9 +105,12 @@ function SignupPage({ onComplete }: { onComplete: (loginId: string) => void }) {
           </div>
           {submitError && <p className="signup__error" role="alert">{submitError}</p>}
         </div>
-        <button className="onboarding-continue" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '가입 중…' : '완료'}
-        </button>
+        <div className="signup__actions">
+          <button className="signup__login" type="button" disabled={isSubmitting} onClick={onLogin}>계정이 이미 있어요</button>
+          <button className="onboarding-continue" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? '가입 중…' : '완료'}
+          </button>
+        </div>
       </form>
     </main>
   )

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { getChatMessages, respondToChatCard, sendChatMessage, type CardResponse, type ChatMessage } from '../../api/chat'
+import { getChatMessages, respondToChatCard, sendChatMessage, type ChatMessage } from '../../api/chat'
 import { helpResourceHref, type HelpResource } from '../../api/helpResources'
 import { ApiError } from '../../api/client'
 import { saveRequiredConsents } from '../../api/consents'
+import type { RoutineTarget } from '../../api/routines'
 import { todayInSeoul } from '../../serviceDate'
 import ConsentPage from '../auth/ConsentPage'
 import ChatCalendar from './ChatCalendar'
@@ -24,7 +25,7 @@ function Message({ children, fromUser = false }: { children: ReactNode; fromUser
   )
 }
 
-export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void }) {
+export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: (routine: RoutineTarget) => void }) {
   const [draft, setDraft] = useState('')
   const [selectedDate, setSelectedDate] = useState(todayInSeoul)
   const [thread, setThread] = useState<{ date: string; messages: ChatMessage[] }>()
@@ -103,17 +104,16 @@ export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void 
     }
   }
 
-  async function answerCard(messageId: number, response: CardResponse) {
+  async function dismissRoutine(messageId: number) {
     if (busy) return
     setRespondingTo(messageId)
     setActionError('')
     try {
-      await respondToChatCard(messageId, response)
+      await respondToChatCard(messageId, 'DECLINED')
       setThread((previous) => previous && {
         ...previous,
-        messages: previous.messages.map((message) => message.id === messageId ? { ...message, cardResponse: response } : message),
+        messages: previous.messages.map((message) => message.id === messageId ? { ...message, cardResponse: 'DECLINED' } : message),
       })
-      if (response === 'ACCEPTED') onOpenRoutine()
     } catch (error) {
       if (error instanceof ApiError && error.code === 'CONSENT_REQUIRED') setNeedsConsent(true)
       else {
@@ -177,21 +177,29 @@ export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void 
         <ol className="chat-messages" aria-label="대화 내용" aria-live="polite">
           {messages?.map((message) => {
             if (message.messageType === 'ROUTINE_RECOMMENDATION') {
+              const title = message.payload?.title || message.content
               return (
                 <li className="chat-row" key={message.id}>
                   <img className="chat-avatar" src={sheep} alt="소미" />
                   <section className="chat-routine" aria-label="추천 루틴">
                     <span className="chat-routine__label">추천 루틴</span>
-                    <h2>{message.payload?.title || message.content}</h2>
+                    <h2>{title}</h2>
                     {message.payload?.durationSec && <span>{message.payload.durationSec}초</span>}
                     {message.payload?.reason && <span>{message.payload.reason}</span>}
-                    {message.cardResponse === 'ACCEPTED' && <span>루틴을 선택했어요.</span>}
+                    {!isToday && message.cardResponse === 'ACCEPTED' && <span>루틴을 선택했어요.</span>}
                     {message.cardResponse === 'DECLINED' && <span>루틴을 건너뛰었어요.</span>}
+                    {isToday && message.cardResponse !== 'DECLINED' && (
+                      <button
+                        type="button"
+                        className="chat-routine__start"
+                        disabled={busy}
+                        onClick={() => onOpenRoutine({ routineId: message.payload?.routineId, title })}
+                      >
+                        루틴 이동
+                      </button>
+                    )}
                     {isToday && !message.cardResponse && (
-                      <>
-                        <button type="button" className="chat-routine__start" disabled={busy} onClick={() => void answerCard(message.id, 'ACCEPTED')}>지금 해볼게요</button>
-                        <button type="button" className="chat-routine__dismiss" disabled={busy} onClick={() => void answerCard(message.id, 'DECLINED')}>오늘은 그냥 둘래요</button>
-                      </>
+                      <button type="button" className="chat-routine__dismiss" disabled={busy} onClick={() => void dismissRoutine(message.id)}>오늘은 그냥 둘래요</button>
                     )}
                   </section>
                 </li>
