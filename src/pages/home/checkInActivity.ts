@@ -1,14 +1,3 @@
-const koreaDate = new Intl.DateTimeFormat('sv-SE', {
-  timeZone: 'Asia/Seoul',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-})
-
-export function todayCheckInDate() {
-  return koreaDate.format(new Date())
-}
-
 export function readCheckInActivity(loginId: string, date: string) {
   try {
     const record = JSON.parse(localStorage.getItem(`check-in-activity:${loginId}`) ?? 'null')

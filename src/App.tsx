@@ -126,7 +126,7 @@ function App() {
         {showHelp ? (
           <HelpPage onBack={() => {
             closeHelp()
-            setScreen('my')
+            if (screen !== 'chat') setScreen('my')
           }} />
         ) : screen === 'my' ? (
           <MyPage />
