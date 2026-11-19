@@ -2,7 +2,7 @@ import { useState, type SubmitEvent } from 'react'
 import { login } from '../../api/auth'
 import '../../styles/auth/LoginPage.css'
 
-function LoginPage({ onLogin }: { onLogin: () => void }) {
+function LoginPage({ onLogin }: { onLogin: (loginId: string) => Promise<void> }) {
   const [notice, setNotice] = useState('')
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -23,7 +23,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
     setIsSubmitting(true)
     try {
       await login({ loginId, password: String(form.get('password') ?? '') })
-      onLogin()
+      await onLogin(loginId)
     } catch (error) {
       setSubmitError(error instanceof Error && !(error instanceof TypeError)
         ? error.message

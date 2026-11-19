@@ -5,13 +5,19 @@ import '../../styles/auth/ConsentPage.css'
 
 const requiredItems = ['만 14세 이상이에요', '서비스 이용약관', '개인정보 수집 이용']
 
-function ConsentPage({ onContinue }: { onContinue: () => void }) {
+function ConsentPage({ onContinue, isSubmitting = false, error = '', embedded = false }: {
+  onContinue: () => void
+  isSubmitting?: boolean
+  error?: string
+  embedded?: boolean
+}) {
   const [accepted, setAccepted] = useState(() => requiredItems.map(() => false))
   const allAccepted = accepted.every(Boolean)
+  const Container = embedded ? 'section' : 'main'
 
   return (
-    <main className="consent" aria-labelledby="consent-title">
-      <div className="consent__content">
+    <Container className="consent" aria-labelledby="consent-title">
+      <div className="consent__content" inert={isSubmitting}>
         <h1 id="consent-title"><span>솜을 시작하기 전에<br />확인해주세요</span></h1>
 
         <div className="consent__choices">
@@ -44,12 +50,13 @@ function ConsentPage({ onContinue }: { onContinue: () => void }) {
           <h2 id="consent-notice-title">선택 항목은 따로 물어볼게요</h2>
           <p>수면시간, 걸음 수, 휴대폰 사용 시간, 캘린더는 연결할 때 항목마다 따로 동의를 받아요. 연결하지 않아도 솜을 쓸 수 있어요.</p>
         </section>
+        {error && <p role="alert">{error}</p>}
       </div>
 
-      <button className="onboarding-continue" type="button" disabled={!allAccepted} onClick={onContinue}>
-        동의하고 시작하기
+      <button className="onboarding-continue" type="button" disabled={!allAccepted || isSubmitting} onClick={onContinue}>
+        {isSubmitting ? '동의 저장 중…' : '동의하고 시작하기'}
       </button>
-    </main>
+    </Container>
   )
 }
 
