@@ -256,7 +256,7 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
           <div className="sheep-progress" role="img" aria-label={sheepLevel === null ? '오늘의 양 레벨 기록 없음' : `오늘의 양 레벨 ${sheepLevel}단계`}>
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img src={miniSheep} width="66" height="49" alt="" />
-            <span className="sheep-progress__number">{sheepLevel ?? (todayData ? '기록 없음' : '–')}</span>
+            {sheepLevel !== null && <span className="sheep-progress__number">{sheepLevel}</span>}
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
             <img className="sheep-progress__mini" src={miniSheep} alt="" />
           </div>
