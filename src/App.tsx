@@ -5,6 +5,7 @@ import HomePage from './pages/home/HomePage'
 import MyPage from './pages/my/MyPage'
 import HelpPage from './pages/my/HelpPage'
 import ConsentPage from './pages/auth/ConsentPage'
+import CalendarConnectPage from './pages/auth/CalendarConnectPage'
 import IntroductionPage from './pages/onboarding/IntroductionPage'
 import LoginPage from './pages/auth/LoginPage'
 import NicknamePage from './pages/auth/NicknamePage'
@@ -16,7 +17,7 @@ import RoutinePage from './pages/routine/RoutinePage'
 import { profileSteps } from './situationOptions'
 
 function App() {
-  const [onboarding, setOnboarding] = useState<'welcome' | 'login' | 'introduction' | 'consent' | 'signup' | 'nickname' | 'situation' | 'summary' | 'complete'>('welcome')
+  const [onboarding, setOnboarding] = useState<'welcome' | 'login' | 'introduction' | 'consent' | 'signup' | 'nickname' | 'situation' | 'summary' | 'calendar' | 'complete'>('welcome')
   const [nickname, setNickname] = useState('')
   const [profileStep, setProfileStep] = useState(0)
   const [profileAnswers, setProfileAnswers] = useState<string[][]>(() => profileSteps.map(() => []))
@@ -75,7 +76,6 @@ function App() {
           <NicknamePage
             nickname={nickname}
             onChange={setNickname}
-            onBack={() => setOnboarding('signup')}
             onContinue={() => {
               setNickname(nickname.trim())
               setOnboarding('situation')
@@ -85,8 +85,10 @@ function App() {
           <OnboardingCompletePage
             nickname={nickname}
             onBack={() => setOnboarding('situation')}
-            onHome={openHome}
+            onContinue={() => setOnboarding('calendar')}
           />
+        ) : onboarding === 'calendar' ? (
+          <CalendarConnectPage onBack={() => setOnboarding('summary')} onSkip={() => setOnboarding('login')} />
         ) : (
           <SituationPage
             key={profileStep}

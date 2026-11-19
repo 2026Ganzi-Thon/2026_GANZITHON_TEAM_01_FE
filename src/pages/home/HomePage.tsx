@@ -15,6 +15,7 @@ function HomePage({ sheepLevel, onOpenRoutine }: { sheepLevel: 1 | 2; onOpenRout
   const [current, setCurrent] = useState(1)
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<string[]>([])
+  const [walkingAnswer, setWalkingAnswer] = useState('')
   const complete = step === checkInSteps.length
 
   useLayoutEffect(() => {
@@ -64,11 +65,14 @@ function HomePage({ sheepLevel, onOpenRoutine }: { sheepLevel: 1 | 2; onOpenRout
             <CheckIn
               step={step}
               answer={answers[step]}
+              walkingAnswer={walkingAnswer}
               onSelect={selectAnswer}
+              onSelectWalking={setWalkingAnswer}
               onPrevious={() => setStep(step - 1)}
               onNext={() => setStep(step + 1)}
               onSkip={() => {
                 selectAnswer('')
+                if (step === checkInSteps.length - 1) setWalkingAnswer('')
                 setStep(step + 1)
               }}
             />
@@ -139,6 +143,7 @@ function HomePage({ sheepLevel, onOpenRoutine }: { sheepLevel: 1 | 2; onOpenRout
             setCurrent(1)
             setStep(0)
             setAnswers([])
+            setWalkingAnswer('')
           }}
         />
       )}

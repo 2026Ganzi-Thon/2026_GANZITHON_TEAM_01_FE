@@ -1,0 +1,126 @@
+.calendar-connect {
+  font-family: Pretendard, system-ui, sans-serif;
+}
+
+.calendar-connect__content {
+  padding-block: clamp(28px, 5vh, 46px) 24px;
+}
+
+.calendar-connect h1 {
+  margin: 0 0 12px;
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.calendar-connect__content > p {
+  margin: 0;
+  color: #946e61;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.calendar-connect__preview {
+  margin: 20px -8px 24px;
+  padding: 18px 22px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 2px 16px #3d2c2808;
+  color: #58463b;
+}
+
+.calendar-connect__preview h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+
+.calendar-connect__preview p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.calendar-connect__chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.calendar-connect__chart > div {
+  display: grid;
+  grid-template-rows: 66px auto;
+  align-items: end;
+  gap: 6px;
+  color: #151515;
+  text-align: center;
+  font-size: 12px;
+}
+
+.calendar-connect__bar {
+  border-radius: 10px 10px 0 0;
+  background: #e9c6bd;
+}
+
+.calendar-connect__chart > div:nth-child(4) .calendar-connect__bar {
+  background: #d4aa9d;
+}
+
+.calendar-connect__details {
+  display: grid;
+  gap: 15px;
+  margin: 0;
+  padding: 0 0 0 3px;
+  list-style: none;
+  color: #725c53;
+  font-size: 14px;
+}
+
+.calendar-connect__details li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.calendar-connect__details span,
+.calendar-connect__google {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #a98270;
+  color: white;
+  font-size: 12px;
+}
+
+.calendar-connect__actions {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+}
+
+.calendar-connect__actions p {
+  margin: 0;
+  color: #86665a;
+  font-size: 13px;
+}
+
+.calendar-connect__google {
+  margin-right: 8px;
+  background: white;
+  color: #86665a;
+}
+
+.calendar-connect__google > span {
+  transform: translateY(-1px);
+}
+
+.calendar-connect__skip {
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  color: #9f8170;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
