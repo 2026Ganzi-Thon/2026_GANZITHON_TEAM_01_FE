@@ -78,6 +78,19 @@
   margin-top: auto;
 }
 
+.my-page__chart[data-long] {
+  gap: 2px;
+}
+
+.my-page__chart[data-long] .my-page__day {
+  min-width: 0;
+  font-size: 10px;
+}
+
+.my-page__day > span:last-child {
+  min-height: 16px;
+}
+
 .my-page__day {
   display: flex;
   flex-direction: column;

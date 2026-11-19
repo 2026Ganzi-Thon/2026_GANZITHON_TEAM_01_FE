@@ -1,24 +1,68 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ApiError } from '../../api/client'
+import { saveRequiredConsents } from '../../api/consents'
+import { getInsights } from '../../api/my'
+import type { WeeklyInsights } from '../../api/home'
+import ConsentPage from '../auth/ConsentPage'
 import '../../styles/my/MyPage.css'
 
-const weeklyBars = [
-  { day: '월', height: 52 },
-  { day: '화', height: 74 },
-  { day: '수', height: 108 },
-  { day: '목', height: 128 },
-  { day: '금', height: 70 },
-  { day: '토', height: 91 },
-  { day: '일', height: 52 },
-]
+const menus = ['데이터 연결 관리', '알림 설정', '개인정보 및 데이터 삭제']
+const weekdays = new Intl.DateTimeFormat('ko-KR', { weekday: 'short', timeZone: 'UTC' })
+const dates = new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', timeZone: 'UTC' })
+const numbers = new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 2 })
 
-const menus = [
-  { label: '데이터 연결 관리' },
-  { label: '알림 설정' },
-  { label: '개인정보 및 데이터 삭제' },
-]
+function displayDate(date: string, formatter: Intl.DateTimeFormat = dates) {
+  return formatter.format(new Date(date + 'T00:00:00Z'))
+}
+
+function weekdayIndex(date: string) {
+  return (new Date(date + 'T00:00:00Z').getUTCDay() + 6) % 7
+}
 
 export default function MyPage() {
   const [period, setPeriod] = useState<7 | 30>(7)
+  const [insights, setInsights] = useState<WeeklyInsights>()
+  const [error, setError] = useState('')
+  const [retry, setRetry] = useState(0)
+  const [needsConsent, setNeedsConsent] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (needsConsent) return
+    const controller = new AbortController()
+    void getInsights(period, controller.signal).then((data) => {
+      if (!controller.signal.aborted) setInsights(data)
+    }, (error: unknown) => {
+      if (controller.signal.aborted) return
+      if (error instanceof ApiError && error.code === 'CONSENT_REQUIRED') setNeedsConsent(true)
+      else setError(error instanceof ApiError ? error.message : '털 무게 기록을 불러오지 못했어요.')
+    })
+    return () => controller.abort()
+  }, [needsConsent, period, retry])
+
+  async function saveConsent() {
+    if (busy) return
+    setBusy(true)
+    setError('')
+    try {
+      await saveRequiredConsents()
+      setNeedsConsent(false)
+    } catch (error) {
+      setError(error instanceof ApiError ? error.message : '필수 동의를 저장하지 못했어요.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (needsConsent) return <ConsentPage onContinue={saveConsent} isSubmitting={busy} error={error} />
+
+  const chart = insights?.days ?? []
+  const orderedDays = [...chart].sort((first, second) => period === 7
+    ? weekdayIndex(first.localDate) - weekdayIndex(second.localDate)
+    : first.localDate.localeCompare(second.localDate))
+  const firstColumn = period === 30 && orderedDays.length ? weekdayIndex(orderedDays[0].localDate) : 0
+  const chartColumns = period === 7 ? 7 : Math.ceil((firstColumn + orderedDays.length) / 7) * 7
+  const maxWeight = Math.max(1, ...chart.map(({ woolDisplayKg }) => woolDisplayKg ?? 0))
 
   return (
     <main className="my-page">
@@ -29,34 +73,56 @@ export default function MyPage() {
           <h2 id="my-records-title">나의 털 무게</h2>
           <div className="my-page__period" role="group" aria-label="기록 기간">
             {([7, 30] as const).map((days) => (
-              <button key={days} type="button" aria-pressed={period === days} onClick={() => setPeriod(days)}>
+              <button key={days} type="button" aria-pressed={period === days} onClick={() => {
+                if (period === days) return
+                setInsights(undefined)
+                setError('')
+                setPeriod(days)
+              }}>
                 {days}일
               </button>
             ))}
           </div>
         </header>
-        {period === 7 ? (
+        {error ? (
+          <div className="my-page__empty">
+            <p className="my-page__note" role="alert">{error}</p>
+            <button type="button" onClick={() => { setError(''); setRetry((value) => value + 1) }}>다시 불러오기</button>
+          </div>
+        ) : !insights ? <p className="my-page__note my-page__empty" role="status">기록을 불러오는 중이에요.</p>
+          : !insights.recordedDays ? <p className="my-page__note my-page__empty">기록 없음</p> : (
           <>
-            <div className="my-page__chart" role="img" aria-label="월요일부터 일요일까지의 털 무게. 목요일이 가장 무거웠어요.">
-              {weeklyBars.map(({ day, height }) => (
-                <div className="my-page__day" key={day} aria-hidden="true">
-                  <span className="my-page__bar" style={{ height }} data-peak={day === '목' || undefined} />
-                  <span>{day}</span>
-                </div>
-              ))}
+            <div className="my-page__chart" data-long={period === 30 || undefined}
+              style={{ gridTemplateColumns: 'repeat(' + chartColumns + ', minmax(0, 1fr))' }}
+              role="img" aria-label={orderedDays.map(({ localDate, woolDisplayKg }) =>
+                displayDate(localDate) + ' ' + (woolDisplayKg === null ? '기록 없음' : numbers.format(woolDisplayKg) + 'kg'),
+              ).join(', ')}
+            >
+              {orderedDays.map(({ localDate, woolDisplayKg }, index) => {
+                const date = new Date(localDate + 'T00:00:00Z')
+                const label = period === 7 ? displayDate(localDate, weekdays)
+                  : index === 0 || weekdayIndex(localDate) === 0 || index === orderedDays.length - 1 ? String(date.getUTCDate()) : ''
+                const height = woolDisplayKg === null ? 0 : Math.max(2, (woolDisplayKg / maxWeight) * 128)
+                return (
+                  <div className="my-page__day" key={localDate} aria-hidden="true"
+                    style={{ gridColumn: period === 7 ? weekdayIndex(localDate) + 1 : firstColumn + index + 1 }}
+                    title={displayDate(localDate) + ' ' + (woolDisplayKg === null ? '기록 없음' : numbers.format(woolDisplayKg) + 'kg')}>
+                    <span className="my-page__bar" style={{ height }} data-peak={localDate === insights.heaviestDate || undefined} />
+                    <span>{label}</span>
+                  </div>
+                )
+              })}
             </div>
             <div className="my-page__chart-note">
-              <p>털이 가장 무거웠던 날은 목요일이에요</p>
-              <p>이날 잠이 평소보다 2시간 짧았어요</p>
+              {insights.heaviestDate && <p>가장 무거웠던 날은 {displayDate(insights.heaviestDate, weekdays)}요일이에요.</p>}
+              {(insights.heaviestReason || insights.changeSummary) && <p>{insights.heaviestReason || insights.changeSummary}</p>}
             </div>
           </>
-        ) : (
-          <p className="my-page__note my-page__empty">30일 기록이 아직 없어요.</p>
         )}
       </section>
 
       <section className="my-page__card my-page__settings" aria-label="설정">
-        {menus.map(({ label }) => (
+        {menus.map((label) => (
           <div className="my-page__menu" key={label}>
             {label}
             <span className="my-page__chevron" aria-hidden="true" />

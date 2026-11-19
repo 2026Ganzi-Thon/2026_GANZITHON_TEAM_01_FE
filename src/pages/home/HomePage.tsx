@@ -8,7 +8,8 @@ import miniSheep from '../../assets/image/sheep_mini.png'
 import speechBubble from '../../assets/image/speech_bubble.png'
 import { CheckIn, CheckInComplete } from './CheckIn'
 import { buildCheckInRequest, checkInSteps, restoreCheckInAnswers } from './checkInQuestions'
-import { readCheckInActivity, saveCheckInActivity } from './checkInActivity'
+import { activityRanges, readCheckInActivity, saveCheckInActivity } from './checkInActivity'
+import { getManualSignals } from '../../api/manualSignals'
 import { todayInSeoul } from '../../serviceDate'
 import { getCheckIn, submitCheckIn } from '../../api/checkIns'
 import { ApiError } from '../../api/client'
@@ -76,15 +77,19 @@ function HomePage({ loginId, onOpenRoutine }: { loginId: string; onOpenRoutine: 
   useEffect(() => {
     if (!shouldLoadCheckIn) return
     const controller = new AbortController()
-    void getCheckIn(checkInDate, controller.signal).then((record) => {
+    void Promise.all([
+      getCheckIn(checkInDate, controller.signal),
+      getManualSignals(checkInDate, controller.signal).catch(() => null),
+    ]).then(([record, signals]) => {
       if (controller.signal.aborted) return
       const restored = restoreCheckInAnswers(record)
       const activity = readCheckInActivity(loginId, checkInDate)
-      restored[checkInSteps.length - 1] = activity.sleep
+      const serverRanges = activityRanges(signals)
+      restored[checkInSteps.length - 1] = activity.sleep || serverRanges.sleep
       pendingRequest.current = null
       setStep(0)
       setAnswers(restored)
-      setWalkingAnswer(activity.walking)
+      setWalkingAnswer(activity.walking || serverRanges.walking)
       setLoadedCheckInDate(checkInDate)
       setCheckInLoadError('')
     }, (error: unknown) => {

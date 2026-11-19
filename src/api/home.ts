@@ -10,11 +10,12 @@ export type TodayState = {
 }
 
 export type WeeklyInsights = {
-  days: { localDate: string; level: number | null }[]
+  days: { localDate: string; level: number | null; woolDisplayKg: number | null }[]
   averageLevel: number | null
   recordedDays: number
   changeSummary: string | null
   heaviestDate: string | null
+  heaviestReason: string | null
   woolWeightKg: number | null
   levelText: string | null
 }

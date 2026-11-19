@@ -87,6 +87,10 @@
   color: #fff;
 }
 
+.routine-exercise[data-routine='WRIST_ARM_STRETCH'] h1 {
+  color: #F1F1F1;
+}
+
 .routine-exercise__timer {
   position: relative;
   display: grid;

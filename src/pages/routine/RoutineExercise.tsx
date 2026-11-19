@@ -6,7 +6,7 @@ import sheep from '../../assets/image/original_sheep.png'
 import '../../styles/routine/RoutineExercise.css'
 
 type RoutineExerciseProps = {
-  exercise: { title: string; background: string; seconds: number; guide: string; repeat: string }
+  exercise: { routineId: string; title: string; background: string; seconds: number; guide: string; repeat: string }
   index: number
   count: number
   soundEnabled: boolean
@@ -57,7 +57,7 @@ export default function RoutineExercise({ exercise, index, count, soundEnabled, 
   }, [duration])
 
   return (
-    <main className="routine-exercise" aria-labelledby="routine-exercise-title">
+    <main className="routine-exercise" data-routine={exercise.routineId} aria-labelledby="routine-exercise-title">
       <div className="routine-exercise__background" style={{ backgroundImage: `url(${exercise.background})` }} />
       <audio ref={audioRef} src={meditation} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} />
       <div className="routine-exercise__controls">

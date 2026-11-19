@@ -20,8 +20,10 @@ export default function RoutineReflection({ mood, journal, busy, error, onBack, 
   return (
     <main className="routine-page routine-reflection" aria-labelledby="routine-reflection-title">
       <header>
-        <button className="routine-exercise__back" type="button" aria-label="루틴 목록으로 돌아가기" disabled={busy} onClick={onBack}>
-          <span aria-hidden="true" />
+        <button className="routine-reflection__back" type="button" aria-label="루틴 목록으로 돌아가기" disabled={busy} onClick={onBack}>
+          <svg width="10" height="16" viewBox="0 0 10 16" aria-hidden="true">
+            <path d="M8 2 2 8l6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
         <h1 id="routine-reflection-title">마음 정리하기</h1>
       </header>

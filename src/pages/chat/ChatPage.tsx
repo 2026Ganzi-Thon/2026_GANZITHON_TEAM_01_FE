@@ -247,7 +247,6 @@ export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void 
       {isToday && <form className="chat-composer" onSubmit={sendMessage}>
         <input
           aria-label="소미에게 보낼 메시지"
-          aria-describedby="chat-reply-notice"
           placeholder="소미에게 하고 싶은 말을 적어보세요..."
           value={draft}
           readOnly={isSending}
@@ -258,7 +257,6 @@ export default function ChatPage({ onOpenRoutine }: { onOpenRoutine: () => void 
             <path d="m21 3-6.3 18-4.4-7.3L3 9.3 21 3ZM10.3 13.7l6.2-6.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <p id="chat-reply-notice" className="chat-reply-notice">대화 내용은 소미 답장 생성에 사용돼요.</p>
       </form>}
       <ChatCalendar
         dialogRef={calendarDialog}
