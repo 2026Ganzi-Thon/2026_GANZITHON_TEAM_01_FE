@@ -1,12 +1,13 @@
 import sheep from '../../assets/image/original_sheep.png'
 import completedSheep from '../../assets/image/checkin_sheeep.png'
 import { checkInSteps } from './checkInQuestions'
+import { walkingOptions } from './checkInActivity'
 import '../../styles/home/CheckIn.css'
 
 const walkingQuestion = {
   question: '오늘 얼마나 걸었나요?',
   description: '걸음 수를 몰라도 건너뛸 수 있어요',
-  options: ['2천걸음 이하', '2천~5천 걸음', '5천~8천 걸음', '8천 걸음 이상'],
+  options: walkingOptions,
 }
 
 type CheckInProps = {

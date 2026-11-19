@@ -80,8 +80,8 @@
 }
 
 .help-page__card[data-urgent] {
-  border-color: hsl(10deg 92.3077% 90%);
-  background: hsl(10deg 92.3077% 94.902%);
+  border-color: #FDD6CE;
+  background: #FEEAE6;
 }
 
 .help-page__row {

@@ -40,9 +40,10 @@ export default function HelpPage({ onBack }: { onBack: () => void }) {
           const href = helpResourceHref(resource)
           const isPhone = actionType === 'TEL'
           const label = isPhone ? actionValue : '기관 알아보기'
+          const urgent = isPhone && actionValue.trim() === '109'
 
           return (
-            <section className="help-page__card" key={`${name}:${actionValue}`}>
+            <section className="help-page__card" data-urgent={urgent || undefined} key={`${name}:${actionValue}`}>
               <h2>{situation}</h2>
               <div className="help-page__row">
                 <div>

@@ -181,10 +181,16 @@ export default function RoutinePage({ loginId, onHome }: { loginId: string; onHo
       const trimmed = text.trim()
       if (emotion || trimmed) {
         const entry = await writeJournal(emotion, trimmed)
-        applyOverview({ ...overview, journals: [...overview.journals, entry] })
+        const journals = [...overview.journals, entry]
+        applyOverview({ ...overview, journals })
+        const routineItems = overview.today.routines
+        if (completedCount(routineItems, countReflection(overview.journals)) < activityCount
+          && completedCount(routineItems, countReflection(journals)) >= activityCount) {
+          setReflectionComplete(true)
+          return
+        }
       }
-      if (emotion && trimmed) setReflectionComplete(true)
-      else setActive(null)
+      setActive(null)
     } catch (error) {
       setError(errorMessage(error, '마음 기록을 저장하지 못했어요.'))
     } finally {
@@ -210,6 +216,7 @@ export default function RoutinePage({ loginId, onHome }: { loginId: string; onHo
       <RoutineExercise
         key={exercise.routineId}
         exercise={{
+          routineId: exercise.routineId,
           title: exercise.title,
           background: visuals[exercise.routineId]?.background ?? background1,
           seconds: exercise.durationSec,
