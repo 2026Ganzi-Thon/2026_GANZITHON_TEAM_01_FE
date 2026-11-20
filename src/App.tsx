@@ -17,20 +17,44 @@ import RoutinePage from './pages/routine/RoutinePage'
 import { profileSteps } from './situationOptions'
 import { getCheckIn } from './api/checkIns'
 import { saveRequiredConsents } from './api/consents'
+import { requestGoogleCalendarAuthorization } from './api/googleCalendar'
 import type { RoutineTarget } from './api/routines'
 import { todayInSeoul } from './serviceDate'
+import type { CalendarCallbackResult } from './googleCalendarCallback'
 
 type Navigation = { screen: Screen; initialRoutine?: RoutineTarget; initialCheckInDate?: string }
 
-function App() {
+const pendingSignupKey = 'pending-signup-login'
+
+function readPendingSignupLogin() {
+  try {
+    return sessionStorage.getItem(pendingSignupKey) ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
+const calendarCallbackMessages = {
+  success: '구글 캘린더 연결을 완료했어요. 오늘의 바쁜 시간을 가져왔어요.',
+  cancelled: '연결이 취소됐어요. 필요하면 다시 연결해 주세요.',
+  error: '구글 캘린더를 연결하지 못했어요. 다시 시도해 주세요.',
+}
+
+function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallbackResult> }) {
   const [onboarding, setOnboarding] = useState<'welcome' | 'login' | 'introduction' | 'consent' | 'signup' | 'nickname' | 'situation' | 'summary' | 'calendar' | 'complete'>('welcome')
   const [nickname, setNickname] = useState('')
-  const [pendingConsentLoginId, setPendingConsentLoginId] = useState<string>()
+  const [pendingConsentLoginId, setPendingConsentLoginId] = useState(readPendingSignupLogin)
   const [activeLoginId, setActiveLoginId] = useState('')
   const [profileStep, setProfileStep] = useState(0)
   const [profileAnswers, setProfileAnswers] = useState<string[][]>(() => profileSteps.map(() => []))
   const [{ screen, initialRoutine, initialCheckInDate }, setNavigation] = useState<Navigation>({ screen: 'home' })
   const [showHelp, setShowHelp] = useState(() => window.location.hash === '#help')
+  const [retryCalendarAfterLogin, setRetryCalendarAfterLogin] = useState(false)
+  const [calendarConnecting, setCalendarConnecting] = useState(false)
+  const [calendarError, setCalendarError] = useState('')
+  const [calendarResult, setCalendarResult] = useState<CalendarCallbackResult>()
+  const [callbackDismissed, setCallbackDismissed] = useState(false)
+  const [callbackContinuing, setCallbackContinuing] = useState(false)
 
   useEffect(() => {
     function updateHelpPage() {
@@ -40,6 +64,23 @@ function App() {
     window.addEventListener('hashchange', updateHelpPage)
     return () => window.removeEventListener('hashchange', updateHelpPage)
   }, [])
+
+  useEffect(() => {
+    function resumeCalendarActions(event: PageTransitionEvent) {
+      if (event.persisted) setCalendarConnecting(false)
+    }
+    window.addEventListener('pageshow', resumeCalendarActions)
+    return () => window.removeEventListener('pageshow', resumeCalendarActions)
+  }, [])
+
+  useEffect(() => {
+    if (!calendarCallback) return
+    let mounted = true
+    void calendarCallback.then((result) => {
+      if (mounted) setCalendarResult(result)
+    })
+    return () => { mounted = false }
+  }, [calendarCallback])
 
   function closeHelp() {
     if (window.location.hash === '#help') {
@@ -65,11 +106,17 @@ function App() {
     else setProfileStep(profileStep + 1)
   }
 
-  async function openHome(loginId: string) {
-    if (pendingConsentLoginId === loginId) {
-      await saveRequiredConsents()
-      setPendingConsentLoginId(undefined)
+  function rememberPendingSignup(loginId?: string) {
+    setPendingConsentLoginId(loginId)
+    try {
+      if (loginId) sessionStorage.setItem(pendingSignupKey, loginId)
+      else sessionStorage.removeItem(pendingSignupKey)
+    } catch {
+      // The signup flow can still continue in this page.
     }
+  }
+
+  async function openHome(loginId: string) {
     const date = todayInSeoul()
     const checkIn = await getCheckIn(date, AbortSignal.timeout(8_000)).catch(() => undefined)
     setActiveLoginId(loginId)
@@ -78,13 +125,103 @@ function App() {
     setOnboarding('complete')
   }
 
+  async function connectCalendar() {
+    if (calendarConnecting) return
+    setCalendarConnecting(true)
+    setCalendarError('')
+    try {
+      const authorizationUrl = await requestGoogleCalendarAuthorization()
+      window.location.assign(authorizationUrl)
+    } catch (error) {
+      setCalendarError(error instanceof Error && !(error instanceof TypeError)
+        ? error.message
+        : '구글 캘린더를 연결할 수 없어요. 잠시 후 다시 시도해 주세요.')
+      setCalendarConnecting(false)
+    }
+  }
+
+  async function finishLogin(loginId: string) {
+    const firstSignupLogin = pendingConsentLoginId === loginId
+    if (firstSignupLogin) {
+      await saveRequiredConsents()
+      rememberPendingSignup()
+    }
+    if (firstSignupLogin || retryCalendarAfterLogin) {
+      setActiveLoginId(loginId)
+      setOnboarding('calendar')
+      if (retryCalendarAfterLogin) {
+        setRetryCalendarAfterLogin(false)
+        await connectCalendar()
+      }
+      return
+    }
+    await openHome(loginId)
+  }
+
+  function dismissCalendarCallback() {
+    window.history.replaceState(window.history.state, '', '/')
+    setCallbackDismissed(true)
+  }
+
+  async function leaveCalendarCallback() {
+    if (callbackContinuing) return
+    setCallbackContinuing(true)
+    if (calendarResult?.loginId) await openHome(calendarResult.loginId)
+    else setOnboarding('login')
+    dismissCalendarCallback()
+  }
+
+  function closeCalendarPage() {
+    setCalendarError('')
+    void openHome(activeLoginId)
+  }
+
+  function retryCalendarCallback() {
+    dismissCalendarCallback()
+    const loginId = calendarResult?.loginId
+    if (!loginId) {
+      setRetryCalendarAfterLogin(true)
+      setOnboarding('login')
+      return
+    }
+    setActiveLoginId(loginId)
+    setOnboarding('calendar')
+    void connectCalendar()
+  }
+
+  if (calendarCallback && !callbackDismissed) {
+    const connected = calendarResult?.status === 'success'
+    const status = calendarResult
+      ? calendarResult.message ?? calendarCallbackMessages[calendarResult.status]
+      : '구글 캘린더를 연결하고 있어요.'
+    return (
+      <div className="app-frame">
+        <CalendarConnectPage
+          status={status}
+          onBack={() => void leaveCalendarCallback()}
+          onSkip={() => void leaveCalendarCallback()}
+          onConnect={retryCalendarCallback}
+          busy={!calendarResult || callbackContinuing}
+          connected={connected}
+          skipLabel={connected ? '메인 홈으로' : undefined}
+        />
+      </div>
+    )
+  }
+
   if (onboarding !== 'complete') {
     return (
       <div className="app-frame">
         {onboarding === 'welcome' ? (
           <WelcomePage onContinue={() => setOnboarding('introduction')} onLogin={() => setOnboarding('login')} />
         ) : onboarding === 'login' ? (
-          <LoginPage onLogin={openHome} onSignup={() => setOnboarding('consent')} />
+          <LoginPage
+            onLogin={finishLogin}
+            onSignup={() => {
+              setRetryCalendarAfterLogin(false)
+              setOnboarding('consent')
+            }}
+          />
         ) : onboarding === 'introduction' ? (
           <IntroductionPage
             onBack={() => setOnboarding('welcome')}
@@ -96,7 +233,7 @@ function App() {
           <SignupPage
             onLogin={() => setOnboarding('login')}
             onComplete={(loginId) => {
-              setPendingConsentLoginId(loginId)
+              rememberPendingSignup(loginId)
               setOnboarding('nickname')
             }}
           />
@@ -113,10 +250,16 @@ function App() {
           <OnboardingCompletePage
             nickname={nickname}
             onBack={() => setOnboarding('situation')}
-            onContinue={() => setOnboarding('calendar')}
+            onContinue={() => setOnboarding('login')}
           />
         ) : onboarding === 'calendar' ? (
-          <CalendarConnectPage onBack={() => setOnboarding('summary')} onSkip={() => setOnboarding('login')} />
+          <CalendarConnectPage
+            onBack={closeCalendarPage}
+            onSkip={closeCalendarPage}
+            onConnect={() => void connectCalendar()}
+            busy={calendarConnecting}
+            status={calendarConnecting ? '구글 캘린더 연결을 준비하고 있어요.' : calendarError}
+          />
         ) : (
           <SituationPage
             key={profileStep}
