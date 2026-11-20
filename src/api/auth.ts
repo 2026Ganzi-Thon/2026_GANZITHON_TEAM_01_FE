@@ -1,4 +1,4 @@
-import { writeApi } from './client'
+import { readApi, writeApi } from './client'
 
 type LoginRequest = {
   loginId: string
@@ -15,4 +15,8 @@ export function signup(input: SignupRequest) {
 
 export function login(input: LoginRequest) {
   return writeApi('/auth/login', '로그인', input)
+}
+
+export function getCurrentUser(signal: AbortSignal) {
+  return readApi<{ loginId: string }>('/me', '로그인 상태 확인', signal)
 }
