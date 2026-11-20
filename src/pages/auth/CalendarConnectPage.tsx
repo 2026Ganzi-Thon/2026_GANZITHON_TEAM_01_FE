@@ -3,16 +3,13 @@ import '../../styles/auth/CalendarConnectPage.css'
 const weekdays = ['월', '화', '수', '목', '금', '토', '일']
 const barHeights = [40, 57, 43, 100, 54, 84, 40]
 
-export default function CalendarConnectPage({ onBack, onSkip, onConnect, status, busy, connected, skipLabel }: {
+export default function CalendarConnectPage({ onBack, onSkip, onConnect, status, busy }: {
   onBack: () => void
   onSkip: () => void
   onConnect: () => void
   status?: string
   busy?: boolean
-  connected?: boolean
-  skipLabel?: string
 }) {
-
   return (
     <main className="welcome calendar-connect" aria-labelledby="calendar-connect-title">
       <button className="introduction__back" type="button" onClick={onBack} disabled={busy}>
@@ -41,11 +38,11 @@ export default function CalendarConnectPage({ onBack, onSkip, onConnect, status,
       </div>
       <div className="calendar-connect__actions">
         <p role="status">{status || '연결하지 않아도 솜을 쓸 수 있어요'}</p>
-        <button className="onboarding-continue" type="button" onClick={onConnect} disabled={busy || connected}>
+        <button className="onboarding-continue" type="button" onClick={onConnect} disabled={busy}>
           <span className="calendar-connect__google" aria-hidden="true"><span>G</span></span>
           구글 캘린더 연결하기
         </button>
-        <button className="calendar-connect__skip" type="button" onClick={onSkip} disabled={busy}>{skipLabel ?? '나중에 할게요'}</button>
+        <button className="calendar-connect__skip" type="button" onClick={onSkip} disabled={busy}>나중에 할게요</button>
       </div>
     </main>
   )

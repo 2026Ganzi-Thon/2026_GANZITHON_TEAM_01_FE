@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import BottomNavigation, { type Screen } from './components/BottomNavigation'
 import ChatPage from './pages/chat/ChatPage'
 import HomePage from './pages/home/HomePage'
@@ -35,7 +35,6 @@ function readPendingSignupLogin() {
 }
 
 const calendarCallbackMessages = {
-  success: '구글 캘린더 연결을 완료했어요. 오늘의 바쁜 시간을 가져왔어요.',
   cancelled: '연결이 취소됐어요. 필요하면 다시 연결해 주세요.',
   error: '구글 캘린더를 연결하지 못했어요. 다시 시도해 주세요.',
 }
@@ -52,9 +51,28 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
   const [retryCalendarAfterLogin, setRetryCalendarAfterLogin] = useState(false)
   const [calendarConnecting, setCalendarConnecting] = useState(false)
   const [calendarError, setCalendarError] = useState('')
-  const [calendarResult, setCalendarResult] = useState<CalendarCallbackResult>()
+  const [calendarResult, setCalendarResult] = useState<Exclude<CalendarCallbackResult, { status: 'success' }>>()
   const [callbackDismissed, setCallbackDismissed] = useState(false)
   const [callbackContinuing, setCallbackContinuing] = useState(false)
+
+  const closeHelp = useCallback(() => {
+    if (window.location.hash === '#help') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+    setShowHelp(false)
+  }, [])
+
+  const showHome = useCallback((loginId: string, initialCheckInDate?: string) => {
+    setActiveLoginId(loginId)
+    closeHelp()
+    setNavigation({ screen: 'home', initialCheckInDate })
+    setOnboarding('complete')
+  }, [closeHelp])
+
+  const dismissCalendarCallback = useCallback(() => {
+    window.history.replaceState(window.history.state, '', '/')
+    setCallbackDismissed(true)
+  }, [])
 
   useEffect(() => {
     function updateHelpPage() {
@@ -77,17 +95,16 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
     if (!calendarCallback) return
     let mounted = true
     void calendarCallback.then((result) => {
-      if (mounted) setCalendarResult(result)
+      if (!mounted) return
+      if (result.status === 'success') {
+        dismissCalendarCallback()
+        showHome(result.loginId)
+      } else {
+        setCalendarResult(result)
+      }
     })
     return () => { mounted = false }
-  }, [calendarCallback])
-
-  function closeHelp() {
-    if (window.location.hash === '#help') {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search)
-    }
-    setShowHelp(false)
-  }
+  }, [calendarCallback, dismissCalendarCallback, showHome])
 
   function setScreen(nextScreen: Screen) {
     setNavigation((current) => current.screen === nextScreen && !showHelp ? current : { screen: nextScreen })
@@ -119,10 +136,7 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
   async function openHome(loginId: string) {
     const date = todayInSeoul()
     const checkIn = await getCheckIn(date, AbortSignal.timeout(8_000)).catch(() => undefined)
-    setActiveLoginId(loginId)
-    closeHelp()
-    setNavigation({ screen: 'home', initialCheckInDate: checkIn === null ? date : undefined })
-    setOnboarding('complete')
+    showHome(loginId, checkIn === null ? date : undefined)
   }
 
   async function connectCalendar() {
@@ -158,11 +172,6 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
     await openHome(loginId)
   }
 
-  function dismissCalendarCallback() {
-    window.history.replaceState(window.history.state, '', '/')
-    setCallbackDismissed(true)
-  }
-
   async function leaveCalendarCallback() {
     if (callbackContinuing) return
     setCallbackContinuing(true)
@@ -190,7 +199,6 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
   }
 
   if (calendarCallback && !callbackDismissed) {
-    const connected = calendarResult?.status === 'success'
     const status = calendarResult
       ? calendarResult.message ?? calendarCallbackMessages[calendarResult.status]
       : '구글 캘린더를 연결하고 있어요.'
@@ -202,8 +210,6 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
           onSkip={() => void leaveCalendarCallback()}
           onConnect={retryCalendarCallback}
           busy={!calendarResult || callbackContinuing}
-          connected={connected}
-          skipLabel={connected ? '메인 홈으로' : undefined}
         />
       </div>
     )

@@ -2,11 +2,9 @@ import { getCurrentUser } from './api/auth'
 import { ApiError } from './api/client'
 import { syncGoogleCalendar } from './api/googleCalendar'
 
-export type CalendarCallbackResult = {
-  status: 'success' | 'cancelled' | 'error'
-  loginId?: string
-  message?: string
-}
+export type CalendarCallbackResult =
+  | { status: 'success'; loginId: string }
+  | { status: 'cancelled' | 'error'; loginId?: string; message?: string }
 
 const callbackPath = '/google-callback'
 
