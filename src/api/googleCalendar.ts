@@ -12,6 +12,7 @@ export async function requestGoogleCalendarAuthorization() {
     const url = new URL(address)
     if (url.origin === 'https://accounts.google.com' && url.pathname === '/o/oauth2/v2/auth'
       && !url.username && !url.password) {
+      if (!url.searchParams.has('prompt')) url.searchParams.set('prompt', 'select_account')
       return url.href
     }
   }

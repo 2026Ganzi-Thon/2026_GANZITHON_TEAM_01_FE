@@ -26,11 +26,24 @@ type Navigation = { screen: Screen; initialRoutine?: RoutineTarget; initialCheck
 
 const pendingSignupKey = 'pending-signup-login'
 
-function readPendingSignupLogin() {
+function pendingCalendarKey(loginId: string) {
+  return `pending-calendar-setup:${loginId}`
+}
+
+function readSignupSession(key: string) {
   try {
-    return sessionStorage.getItem(pendingSignupKey) ?? undefined
+    return sessionStorage.getItem(key) ?? undefined
   } catch {
     return undefined
+  }
+}
+
+function saveSignupSession(key: string, value?: string) {
+  try {
+    if (value) sessionStorage.setItem(key, value)
+    else sessionStorage.removeItem(key)
+  } catch {
+    // The signup flow can still continue in this page.
   }
 }
 
@@ -42,7 +55,7 @@ const calendarCallbackMessages = {
 function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallbackResult> }) {
   const [onboarding, setOnboarding] = useState<'welcome' | 'login' | 'introduction' | 'consent' | 'signup' | 'nickname' | 'situation' | 'summary' | 'calendar' | 'complete'>('welcome')
   const [nickname, setNickname] = useState('')
-  const [pendingConsentLoginId, setPendingConsentLoginId] = useState(readPendingSignupLogin)
+  const [pendingConsentLoginId, setPendingConsentLoginId] = useState(() => readSignupSession(pendingSignupKey))
   const [activeLoginId, setActiveLoginId] = useState('')
   const [profileStep, setProfileStep] = useState(0)
   const [profileAnswers, setProfileAnswers] = useState<string[][]>(() => profileSteps.map(() => []))
@@ -97,6 +110,7 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
     void calendarCallback.then((result) => {
       if (!mounted) return
       if (result.status === 'success') {
+        saveSignupSession(pendingCalendarKey(result.loginId))
         dismissCalendarCallback()
         showHome(result.loginId)
       } else {
@@ -125,12 +139,7 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
 
   function rememberPendingSignup(loginId?: string) {
     setPendingConsentLoginId(loginId)
-    try {
-      if (loginId) sessionStorage.setItem(pendingSignupKey, loginId)
-      else sessionStorage.removeItem(pendingSignupKey)
-    } catch {
-      // The signup flow can still continue in this page.
-    }
+    saveSignupSession(pendingSignupKey, loginId)
   }
 
   async function openHome(loginId: string) {
@@ -156,11 +165,13 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
 
   async function finishLogin(loginId: string) {
     const firstSignupLogin = pendingConsentLoginId === loginId
+    const calendarKey = pendingCalendarKey(loginId)
     if (firstSignupLogin) {
       await saveRequiredConsents()
+      saveSignupSession(calendarKey, 'pending')
       rememberPendingSignup()
     }
-    if (firstSignupLogin || retryCalendarAfterLogin) {
+    if (firstSignupLogin || readSignupSession(calendarKey) === 'pending' || retryCalendarAfterLogin) {
       setActiveLoginId(loginId)
       setOnboarding('calendar')
       if (retryCalendarAfterLogin) {
@@ -175,13 +186,18 @@ function App({ calendarCallback }: { calendarCallback?: Promise<CalendarCallback
   async function leaveCalendarCallback() {
     if (callbackContinuing) return
     setCallbackContinuing(true)
-    if (calendarResult?.loginId) await openHome(calendarResult.loginId)
-    else setOnboarding('login')
+    if (calendarResult?.loginId) {
+      saveSignupSession(pendingCalendarKey(calendarResult.loginId))
+      await openHome(calendarResult.loginId)
+    } else {
+      setOnboarding('login')
+    }
     dismissCalendarCallback()
   }
 
   function closeCalendarPage() {
     setCalendarError('')
+    saveSignupSession(pendingCalendarKey(activeLoginId))
     void openHome(activeLoginId)
   }
 
